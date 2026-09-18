@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAntiCheat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="container header-inner">
+        <div class="logo">
+            <span class="logo-dot"></span>
+            <span class="logo-text">akv5<span class="logo-accent">.fun</span></span>
+        </div>
+        <div class="status" id="server-status">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">Подключение...</span>
+        </div>
+    </div>
+</header>
+
+<main class="container main">
+
+    <section class="stats">
+        <div class="stat-card">
+            <div class="stat-label">Онлайн</div>
+            <div class="stat-value" id="stat-online">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Детектов сегодня</div>
+            <div class="stat-value" id="stat-detections">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Средний риск</div>
+            <div class="stat-value" id="stat-risk">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Обновлено</div>
+            <div class="stat-value stat-time" id="stat-updated">—</div>
+        </div>
+    </section>
+
+    <div class="grid">
+        <section class="card">
+            <div class="card-header">
+                <h2>Онлайн игроки</h2>
+                <span class="badge" id="players-count">0</span>
+            </div>
+            <ul class="players" id="players-list">
+                <li class="empty">Загрузка...</li>
+            </ul>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>Детекты</h2>
+                <span class="badge" id="detections-count">0</span>
+            </div>
+            <div class="table-wrap">
+                <table class="detections">
+                    <thead>
+                    <tr>
+                        <th>Игрок</th>
+                        <th>Вероятность</th>
+                        <th>Уверенность</th>
+                        <th>Время</th>
+                    </tr>
+                    </thead>
+                    <tbody id="detections-list">
+                    <tr class="empty-row"><td colspan="4">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <p>akv5.fun &mdash; AAntiCheat &middot; Обновление каждые 5 секунд.</p>
+    </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
