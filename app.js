@@ -1,4 +1,4 @@
-const API_BASE = "http://akv5.fun:8724/anticheat";
+const API_BASE = "http://akv5.fun:30005/anticheat";
 
 const REFRESH_MS = 5000;
 
