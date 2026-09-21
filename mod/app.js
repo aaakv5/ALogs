@@ -16,8 +16,6 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
-/* ---------- Форматирование ---------- */
-
 function fmtDate(ts) {
   if (!ts) return "—";
   const d = new Date(ts);
@@ -39,13 +37,8 @@ function vlClass(vl) {
   return "low";
 }
 
-/* ---------- Рендер: GrimAC (MySQL) ---------- */
-/*
-  Ожидаемые поля (примерные — зависят от схемы БД):
-  id, player / uuid, check_name / type, vl, world, x, y, z, created_at / time
-*/
 function renderGrim(rows) {
-  if (!rows || !rows.length) return emptyRow("Детектов GrimAC нет");
+  if (!rows || !rows.length) return emptyRow("Логов пока нет");
 
   return `
     <table class="feed-table">
@@ -78,9 +71,8 @@ function renderGrim(rows) {
     </table>`;
 }
 
-/* ---------- Рендер: Vulcan (punishments.txt) ---------- */
 function renderVulcan(rows) {
-  if (!rows || !rows.length) return emptyRow("Наказаний Vulcan нет");
+  if (!rows || !rows.length) return emptyRow("Логов пока нет");
 
   return `
     <table class="feed-table">
@@ -117,9 +109,8 @@ function renderVulcan(rows) {
     </table>`;
 }
 
-/* ---------- Рендер: Matrix (лог) ---------- */
 function renderMatrix(rows) {
-  if (!rows || !rows.length) return emptyRow("Записей Matrix нет");
+  if (!rows || !rows.length) return emptyRow("Логов пока нет");
 
   return `
     <table class="feed-table">
@@ -152,8 +143,6 @@ function emptyRow(text) {
   return `<div class="feed-empty">${escapeHtml(text)}</div>`;
 }
 
-/* ---------- Основная логика ---------- */
-
 function renderCurrent() {
   const feed = el("feed-body");
   const data = cache[currentTab] || [];
@@ -184,7 +173,6 @@ async function loadAll() {
   cache.vulcan = Array.isArray(data.vulcan) ? data.vulcan : [];
   cache.matrix = Array.isArray(data.matrix) ? data.matrix : [];
 
-  // Показать ошибки источников, если есть
   if (data.grim && data.grim.error)   console.warn("Grim error:",   data.grim.error);
   if (data.vulcan && data.vulcan.error) console.warn("Vulcan error:", data.vulcan.error);
   if (data.matrix && data.matrix.error) console.warn("Matrix error:", data.matrix.error);
@@ -201,8 +189,6 @@ async function refresh() {
   }
 }
 
-/* ---------- Табы ---------- */
-
 document.querySelectorAll(".tab").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
@@ -211,8 +197,6 @@ document.querySelectorAll(".tab").forEach(btn => {
     renderCurrent();
   });
 });
-
-/* ---------- Старт ---------- */
 
 refresh();
 setInterval(refresh, REFRESH_MS);
