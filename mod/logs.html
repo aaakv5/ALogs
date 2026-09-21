@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALogs</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main class="wrap">
+
+    <header class="top">
+        <div>
+            <div class="top-label">LIVE</div>
+            <h1 class="top-title">Логи античитов</h1>
+        </div>
+        <span class="pill pill-green" id="status-pill">
+            <span class="dot"></span> ОНЛАЙН
+        </span>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab active" data-tab="grim">GrimAC</button>
+        <button class="tab" data-tab="vulcan">Vulcan</button>
+        <button class="tab" data-tab="matrix">Matrix</button>
+    </nav>
+
+    <section class="feed">
+        <div class="feed-head">
+            <span class="feed-head-left" id="feed-title">grim</span>
+            <span class="pill pill-green small"><span class="dot"></span> LIVE</span>
+        </div>
+        <div class="feed-body" id="feed-body">
+            <div class="feed-empty">Ожидание данных...</div>
+        </div>
+    </section>
+
+</main>
+
+<script src="app.js?v=1"></script>
+</body>
+</html>
