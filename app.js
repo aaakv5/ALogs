@@ -1,4 +1,4 @@
-const API_BASE = "http://akv5.fun:30001/anticheat";
+const API_BASE = "https://react.arcanomc.pw";
 
 const REFRESH_MS = 5000;
 
