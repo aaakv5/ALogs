@@ -4,8 +4,17 @@ const REFRESH_MS = 5000;
 let currentTab = "grim";
 let cache = { grim: [], vulcan: [], matrix: [] };
 let searchQuery = "";
+let selectedDate = todayKey();
 
 function el(id) { return document.getElementById(id); }
+
+function todayKey() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + day;
+}
 
 function escapeHtml(s) {
   if (s === null || s === undefined) return "";
@@ -17,7 +26,7 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
-/* ---------- Формат даты ---------- */
+/* ---------- Формат даты/времени ---------- */
 
 function fmtDateTime(ts) {
   if (!ts) return "—";
@@ -36,19 +45,22 @@ function vlClass(vl) {
   return "low";
 }
 
-/* ---------- Нормализация в единый вид ---------- */
-/* { date, player, reason, detail, vl, ping, source } */
+/* ---------- Нормализация ---------- */
 
 function normalizeGrim(r) {
   const time = r.created_at || r.time || r.timestamp || r.date || r.inserted_at;
   const player = r.player || r.player_name || r.username || r.uuid || "—";
   const reason = r.check_name || r.check || r.type || r.stable_key || "—";
   const detail = r.description || r.detail || r.info || r.verbose || "";
-  const vl = r.vl ?? r.violations ?? r.level ?? 0;
-  const ping = r.ping ?? r.keepalive ?? r.keep_alive_ping ?? "—";
+  const vl = r.vl != null ? r.vl : (r.violations != null ? r.violations : (r.level != null ? r.level : 0));
+  const ping = r.ping != null ? r.ping : (r.keepalive != null ? r.keepalive : (r.keep_alive_ping != null ? r.keep_alive_ping : "—"));
+
+  let dateStr;
+  if (typeof time === "number") dateStr = fmtDateTime(time);
+  else dateStr = time ? String(time) : "—";
 
   return {
-    date: typeof time === "number" ? fmtDateTime(time) : (time ? String(time) : "—"),
+    date: dateStr,
     player: String(player),
     reason: String(reason),
     detail: String(detail),
@@ -59,9 +71,9 @@ function normalizeGrim(r) {
 }
 
 function normalizeVulcan(r) {
-  const dt = r.date && r.time ? `${r.date} ${r.time}` : (r.date || r.time || "—");
+  const dt = r.date && r.time ? (r.date + " " + r.time) : (r.date || r.time || "—");
   const pos = (r.x && r.y && r.z)
-    ? `X: ${(+r.x).toFixed(1)}, Y: ${(+r.y).toFixed(1)}, Z: ${(+r.z).toFixed(1)}`
+    ? "X: " + (+r.x).toFixed(1) + ", Y: " + (+r.y).toFixed(1) + ", Z: " + (+r.z).toFixed(1)
     : "";
   const detail = [pos, r.version ? "v" + r.version : ""].filter(Boolean).join(" • ");
 
@@ -70,8 +82,8 @@ function normalizeVulcan(r) {
     player: String(r.player || "—"),
     reason: String(r.reason || "—"),
     detail: detail,
-    vl: r.violations ?? 0,
-    ping: r.ping ?? "—",
+    vl: r.violations != null ? r.violations : 0,
+    ping: r.ping != null ? r.ping : "—",
     source: "vulcan"
   };
 }
@@ -81,87 +93,72 @@ function normalizeMatrix(r) {
     date: r.time || "—",
     player: String(r.player || "—"),
     reason: String(r.category || "—"),
-    detail: r.detail ? `${r.detail} [${r.component || ""}]` : "—",
-    vl: r.vl ?? 0,
-    ping: r.ping ?? "—",
+    detail: r.detail ? (r.detail + " [" + (r.component || "") + "]") : "—",
+    vl: r.vl != null ? r.vl : 0,
+    ping: r.ping != null ? r.ping : "—",
     source: "matrix"
   };
 }
 
 function normalizeAll() {
   return {
-    grim: (cache.grim || []).map(normalizeGrim),
+    grim:   (cache.grim   || []).map(normalizeGrim),
     vulcan: (cache.vulcan || []).map(normalizeVulcan),
     matrix: (cache.matrix || []).map(normalizeMatrix)
   };
 }
 
-/* ---------- Рендер таблицы ---------- */
+/* ---------- Рендер ---------- */
 
-function renderTable(rows, opts) {
-  opts = opts || {};
-  const showSource = !!opts.showSource;
-
+function renderTable(rows, emptyText) {
   if (!rows.length) {
-    return '<div class="feed-empty">' + escapeHtml(opts.emptyText || "Нет данных") + '</div>';
+    return '<div class="feed-empty">' + escapeHtml(emptyText || "Нет данных") + '</div>';
   }
 
-  return `
-    <table class="feed-table">
-      <thead>
-        <tr>
-          <th class="col-time">Дата</th>
-          <th class="col-player">Игрок</th>
-          ${showSource ? '<th class="col-source">Источник</th>' : ''}
-          <th class="col-type">Причина</th>
-          <th class="col-detail">Детали</th>
-          <th class="col-vl">VL</th>
-          <th class="col-ping">Пинг</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows.map(function (r) {
-          return `
-            <tr>
-              <td class="col-time">${escapeHtml(r.date)}</td>
-              <td class="col-player">${escapeHtml(r.player)}</td>
-              ${showSource ? '<td class="col-source"><span class="source-badge source-' + r.source + '">' + escapeHtml(r.source) + '</span></td>' : ''}
-              <td class="col-type">${escapeHtml(r.reason)}</td>
-              <td class="col-detail">${escapeHtml(r.detail)}</td>
-              <td class="col-vl"><span class="vl-badge ${vlClass(r.vl)}">${escapeHtml(r.vl)}</span></td>
-              <td class="col-ping">${escapeHtml(r.ping)}</td>
-            </tr>
-          `;
-        }).join("")}
-      </tbody>
-    </table>`;
+  return '<table class="feed-table">'
+    + '<thead><tr>'
+    + '<th class="col-time">Дата</th>'
+    + '<th class="col-player">Игрок</th>'
+    + '<th class="col-source">Источник</th>'
+    + '<th class="col-type">Причина</th>'
+    + '<th class="col-detail">Детали</th>'
+    + '<th class="col-vl">VL</th>'
+    + '<th class="col-ping">Пинг</th>'
+    + '</tr></thead>'
+    + '<tbody>'
+    + rows.map(function (r) {
+        return '<tr>'
+          + '<td class="col-time">' + escapeHtml(r.date) + '</td>'
+          + '<td class="col-player">' + escapeHtml(r.player) + '</td>'
+          + '<td class="col-source"><span class="source-badge source-' + r.source + '">' + escapeHtml(r.source) + '</span></td>'
+          + '<td class="col-type">' + escapeHtml(r.reason) + '</td>'
+          + '<td class="col-detail">' + escapeHtml(r.detail) + '</td>'
+          + '<td class="col-vl"><span class="vl-badge ' + vlClass(r.vl) + '">' + escapeHtml(r.vl) + '</span></td>'
+          + '<td class="col-ping">' + escapeHtml(r.ping) + '</td>'
+          + '</tr>';
+      }).join("")
+    + '</tbody></table>';
 }
 
 function renderCurrent() {
   const feed = el("feed-body");
   const data = normalizeAll();
+  const isToday = (selectedDate === todayKey());
 
-  /* --- Режим поиска --- */
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     const all = data.grim.concat(data.vulcan, data.matrix)
       .filter(function (r) { return r.player.toLowerCase().indexOf(q) !== -1; });
 
-    el("feed-title").textContent = 'поиск: "' + searchQuery + '" (' + all.length + ')';
-    feed.innerHTML = renderTable(all, {
-      showSource: true,
-      emptyText: 'Ничего не найдено по запросу "' + searchQuery + '"'
-    });
+    const title = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + all.length + ' записей';
+    el("feed-title").textContent = title;
+    feed.innerHTML = renderTable(all, 'Ничего не найдено');
     return;
   }
 
-  /* --- Режим вкладок --- */
   const rows = data[currentTab] || [];
-  el("feed-title").textContent = currentTab;
-  feed.innerHTML = renderTable(rows, {
-    showSource: false,
-    emptyText: "Записей " + currentTab + " нет"
-  });
+  el("feed-title").textContent = currentTab + " · " + selectedDate + (isToday ? " · сегодня" : "");
+  feed.innerHTML = renderTable(rows, "Записей " + currentTab + " нет");
 }
 
 /* ---------- Онлайн-статус ---------- */
@@ -179,7 +176,7 @@ function setOnline(online) {
 /* ---------- Загрузка ---------- */
 
 async function loadAll() {
-  const res = await fetch(API_BASE + "/all", { cache: "no-store" });
+  const res = await fetch(API_BASE + "/all?date=" + encodeURIComponent(selectedDate), { cache: "no-store" });
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
 
@@ -210,12 +207,6 @@ document.querySelectorAll(".tab").forEach(function (btn) {
     document.querySelectorAll(".tab").forEach(function (b) { b.classList.remove("active"); });
     btn.classList.add("active");
     currentTab = btn.dataset.tab;
-
-    if (searchQuery) {
-      searchQuery = "";
-      el("search-input").value = "";
-      el("search-clear").classList.remove("visible");
-    }
     renderCurrent();
   });
 });
@@ -236,6 +227,23 @@ searchClear.addEventListener("click", function () {
   searchQuery = "";
   searchClear.classList.remove("visible");
   renderCurrent();
+});
+
+/* ---------- Календарь ---------- */
+
+const dateInput = el("date-input");
+dateInput.value = selectedDate;
+
+dateInput.addEventListener("change", function (e) {
+  if (!e.target.value) return;
+  selectedDate = e.target.value;
+  refresh();
+});
+
+el("date-today").addEventListener("click", function () {
+  selectedDate = todayKey();
+  dateInput.value = selectedDate;
+  refresh();
 });
 
 /* ---------- Старт ---------- */
