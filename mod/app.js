@@ -121,6 +121,7 @@ function normalizeChat(r) {
   return {
     date: fmtFull(ts),
     player: String(r.player || "—"),
+    world: String(r.world || "—"),
     reason: String(r.world || "—"),
     detail: String(r.message || ""),
     vl: "—",
@@ -167,6 +168,33 @@ function renderTable(rows, emptyText) {
       + '<td class="col-detail">' + escapeHtml(r.detail) + '</td>'
       + '<td class="col-vl"><span class="vl-badge ' + vlClass(r.vl) + '">' + escapeHtml(r.vl) + '</span></td>'
       + '<td class="col-ping">' + escapeHtml(r.ping) + '</td>'
+      + '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderChatTable(rows, emptyText) {
+  if (!rows.length) {
+    return '<div class="feed-empty">' + escapeHtml(emptyText || "Нет данных") + '</div>';
+  }
+  let html = '<table class="feed-table"><thead><tr>';
+  html += '<th class="col-time">Дата</th>';
+  html += '<th class="col-player">Игрок</th>';
+  html += '<th class="col-server">Сервер</th>';
+  html += '<th class="col-source">Источник</th>';
+  html += '<th class="col-world">Мир</th>';
+  html += '<th class="col-detail">Сообщение</th>';
+  html += '</tr></thead><tbody>';
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    html += '<tr>'
+      + '<td class="col-time">' + escapeHtml(r.date) + '</td>'
+      + '<td class="col-player">' + escapeHtml(r.player) + '</td>'
+      + '<td class="col-server"><span class="server-badge">' + escapeHtml(r.server || "—") + '</span></td>'
+      + '<td class="col-source"><span class="source-badge source-' + r.source + '">' + escapeHtml(r.source) + '</span></td>'
+      + '<td class="col-world">' + escapeHtml(r.world || "—") + '</td>'
+      + '<td class="col-detail">' + escapeHtml(r.detail) + '</td>'
       + '</tr>';
   }
   html += '</tbody></table>';
@@ -228,9 +256,10 @@ function renderCurrent() {
     if (!pages.search || pages.search < 1) pages.search = 1;
     if (pages.search > totalPages) pages.search = totalPages;
     const start = (pages.search - 1) * PER_PAGE;
+    const pageRows = all.slice(start, start + PER_PAGE);
 
     el("feed-title").textContent = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + total;
-    feed.innerHTML = renderTable(all.slice(start, start + PER_PAGE), 'Ничего не найдено');
+    feed.innerHTML = renderTable(pageRows, 'Ничего не найдено');
     if (pag) pag.innerHTML = renderPagination(total, pages.search, "search");
     return;
   }
@@ -246,7 +275,13 @@ function renderCurrent() {
   const pageRows = rows.slice(start, start + PER_PAGE);
 
   el("feed-title").textContent = currentTab + " · " + selectedDate + (isToday ? " · сегодня" : "");
-  feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет");
+
+  if (currentTab === "chat") {
+    feed.innerHTML = renderChatTable(pageRows, "Сообщений нет");
+  } else {
+    feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет");
+  }
+
   if (pag) pag.innerHTML = renderPagination(total, pages[currentTab], currentTab);
 }
 
