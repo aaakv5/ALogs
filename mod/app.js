@@ -2,7 +2,7 @@ const API_BASE = "https://logs.arcanomc.pw";
 const REFRESH_MS = 5000;
 
 let currentTab = "grim";
-let cache = { grim: [], vulcan: [], matrix: [] };
+let cache = { grim: [], vulcan: [], matrix: [], server: "—" };
 let searchQuery = "";
 let selectedDate = todayKey();
 
@@ -62,6 +62,7 @@ function normalizeGrim(r) {
     vl: vl,
     ping: ping,
     source: "grim",
+    server: cache.server,
     _ts: typeof time === "number" ? time : 0
   };
 }
@@ -85,6 +86,7 @@ function normalizeVulcan(r) {
     vl: r.vl != null ? r.vl : 0,
     ping: r.ping != null ? r.ping : "—",
     source: "vulcan",
+    server: cache.server,
     _ts: isNaN(parsed) ? 0 : parsed
   };
 }
@@ -101,6 +103,7 @@ function normalizeMatrix(r) {
     vl: r.vl != null ? r.vl : 0,
     ping: r.ping != null ? r.ping : "—",
     source: "matrix",
+    server: cache.server,
     _ts: isNaN(parsed) ? 0 : parsed
   };
 }
@@ -186,6 +189,7 @@ async function loadAll() {
   cache.grim   = Array.isArray(data.grim)   ? data.grim   : [];
   cache.vulcan = Array.isArray(data.vulcan) ? data.vulcan : [];
   cache.matrix = Array.isArray(data.matrix) ? data.matrix : [];
+  cache.server = data.server || "—";
 
   el("count-grim").textContent   = cache.grim.length;
   el("count-vulcan").textContent = cache.vulcan.length;
