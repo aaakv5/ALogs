@@ -418,9 +418,11 @@ body {
     color: var(--text);
     font-family: var(--mono);
     font-size: 13px;
-    padding: 12px 14px;
+    padding: 8px 12px;
     outline: none;
     color-scheme: dark;
+    height: 38px;
+    box-sizing: border-box;
 }
 .date-box input[type="date"]:focus { border-color: var(--accent); }
 
@@ -432,7 +434,9 @@ body {
     font-family: inherit;
     font-size: 12px;
     font-weight: 600;
-    padding: 0 16px;
+    padding: 0 14px;
+    height: 38px;
+    box-sizing: border-box;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.5px;
