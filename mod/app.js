@@ -9,7 +9,6 @@ let selectedDate = todayKey();
 let pages = { grim: 1, vulcan: 1, matrix: 1 };
 
 function el(id) { return document.getElementById(id); }
-
 function pad2(n) { return n < 10 ? "0" + n : "" + n; }
 
 function todayKey() {
@@ -53,16 +52,13 @@ function normalizeGrim(r) {
     parts.push("client: " + (r.client_pvn ? r.client_brand + " " + r.client_pvn : r.client_brand));
   }
 
-  const vl = r.vl != null ? r.vl : (r.violations != null ? r.violations : 0);
-  const ping = r.ping != null ? r.ping : "—";
-
   return {
     date: typeof time === "number" ? fmtFull(time) : (time ? String(time) : "—"),
     player: String(player),
     reason: String(reason),
     detail: parts.join(" • "),
-    vl: vl,
-    ping: ping,
+    vl: r.vl != null ? r.vl : (r.violations != null ? r.violations : 0),
+    ping: r.ping != null ? r.ping : "—",
     source: "grim",
     server: cache.server,
     _ts: typeof time === "number" ? time : 0
@@ -124,74 +120,74 @@ function renderTable(rows, emptyText) {
   if (!rows.length) {
     return '<div class="feed-empty">' + escapeHtml(emptyText || "Нет данных") + '</div>';
   }
-
-  return '<table class="feed-table">'
-    + '<thead><tr>'
-    + '<th class="col-time">Дата</th>'
-    + '<th class="col-player">Игрок</th>'
-    + '<th class="col-server">Сервер</th>'
-    + '<th class="col-source">Источник</th>'
-    + '<th class="col-type">Причина</th>'
-    + '<th class="col-detail">Детали</th>'
-    + '<th class="col-vl">VL</th>'
-    + '<th class="col-ping">Пинг</th>'
-    + '</tr></thead>'
-    + '<tbody>'
-    + rows.map(function (r) {
-        return '<tr>'
-          + '<td class="col-time">' + escapeHtml(r.date) + '</td>'
-          + '<td class="col-player">' + escapeHtml(r.player) + '</td>'
-          + '<td class="col-server"><span class="server-badge">' + escapeHtml(r.server || "—") + '</span></td>'
-          + '<td class="col-source"><span class="source-badge source-' + r.source + '">' + escapeHtml(r.source) + '</span></td>'
-          + '<td class="col-type">' + escapeHtml(r.reason) + '</td>'
-          + '<td class="col-detail">' + escapeHtml(r.detail) + '</td>'
-          + '<td class="col-vl"><span class="vl-badge ' + vlClass(r.vl) + '">' + escapeHtml(r.vl) + '</span></td>'
-          + '<td class="col-ping">' + escapeHtml(r.ping) + '</td>'
-          + '</tr>';
-      }).join("")
-    + '</tbody></table>';
+  let html = '<table class="feed-table"><thead><tr>';
+  html += '<th class="col-time">Дата</th>';
+  html += '<th class="col-player">Игрок</th>';
+  html += '<th class="col-server">Сервер</th>';
+  html += '<th class="col-source">Источник</th>';
+  html += '<th class="col-type">Причина</th>';
+  html += '<th class="col-detail">Детали</th>';
+  html += '<th class="col-vl">VL</th>';
+  html += '<th class="col-ping">Пинг</th>';
+  html += '</tr></thead><tbody>';
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    html += '<tr>'
+      + '<td class="col-time">' + escapeHtml(r.date) + '</td>'
+      + '<td class="col-player">' + escapeHtml(r.player) + '</td>'
+      + '<td class="col-server"><span class="server-badge">' + escapeHtml(r.server || "—") + '</span></td>'
+      + '<td class="col-source"><span class="source-badge source-' + r.source + '">' + escapeHtml(r.source) + '</span></td>'
+      + '<td class="col-type">' + escapeHtml(r.reason) + '</td>'
+      + '<td class="col-detail">' + escapeHtml(r.detail) + '</td>'
+      + '<td class="col-vl"><span class="vl-badge ' + vlClass(r.vl) + '">' + escapeHtml(r.vl) + '</span></td>'
+      + '<td class="col-ping">' + escapeHtml(r.ping) + '</td>'
+      + '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
 }
 
-function renderPagination(total, page, onPageClick) {
+function renderPagination(total, page) {
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   if (totalPages <= 1) return "";
 
-  let buttons = [];
-  const push = function (p, label, active, disabled) {
-    buttons.push(
-      '<button class="page-btn' + (active ? ' active' : '') + '" data-page="' + p + '"'
-      + (disabled ? ' disabled' : '') + '>' + label + '</button>'
-    );
-  };
+  let btns = [];
+  function addBtn(p, label, active, disabled) {
+    btns.push('<button class="page-btn' + (active ? ' active' : '') + '" data-page="' + p + '"'
+      + (disabled ? ' disabled' : '') + '>' + label + '</button>');
+  }
 
-  push(page - 1, '‹', false, page <= 1);
+  addBtn(page - 1, '‹', false, page <= 1);
 
   const range = [];
-  const addPage = function (p) { if (range.indexOf(p) === -1 && p >= 1 && p <= totalPages) range.push(p); };
-  addPage(1);
-  addPage(2);
-  for (let i = page - 2; i <= page + 2; i++) addPage(i);
-  addPage(totalPages - 1);
-  addPage(totalPages);
+  function add(p) { if (p >= 1 && p <= totalPages && range.indexOf(p) === -1) range.push(p); }
+  add(1);
+  add(2);
+  for (let i = page - 2; i <= page + 2; i++) add(i);
+  add(totalPages - 1);
+  add(totalPages);
   range.sort(function (a, b) { return a - b; });
 
   let prev = 0;
-  range.forEach(function (p) {
-    if (prev && p - prev > 1) buttons.push('<span class="page-dots">…</span>');
-    push(p, String(p), p === page, false);
+  for (let i = 0; i < range.length; i++) {
+    const p = range[i];
+    if (prev && p - prev > 1) btns.push('<span class="page-dots">…</span>');
+    addBtn(p, String(p), p === page, false);
     prev = p;
-  });
+  }
 
-  push(page + 1, '›', false, page >= totalPages);
+  addBtn(page + 1, '›', false, page >= totalPages);
 
-  return '<div class="pagination" id="pagination">'
+  return '<div class="pagination">'
     + '<span class="page-info">стр. ' + page + ' из ' + totalPages + ' · всего ' + total + '</span>'
-    + '<span class="page-btns">' + buttons.join("") + '</span>'
+    + '<span class="page-btns">' + btns.join("") + '</span>'
     + '</div>';
 }
 
 function renderCurrent() {
   const feed = el("feed-body");
+  if (!feed) return;
+
   const data = normalizeAll();
   const isToday = (selectedDate === todayKey());
 
@@ -200,23 +196,23 @@ function renderCurrent() {
     const all = data.grim.concat(data.vulcan, data.matrix)
       .filter(function (r) { return r.player.toLowerCase().indexOf(q) !== -1; })
       .sort(sortByTs);
-
-    el("feed-title").textContent = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + all.length + ' записей';
+    el("feed-title").textContent = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + all.length;
     feed.innerHTML = renderTable(all, 'Ничего не найдено');
     return;
   }
 
-  const rows = (data[currentTab] || []).sort(sortByTs);
+  const rows = (data[currentTab] || []).slice().sort(sortByTs);
   const total = rows.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  if (!pages[currentTab] || pages[currentTab] < 1) pages[currentTab] = 1;
   if (pages[currentTab] > totalPages) pages[currentTab] = totalPages;
-  if (pages[currentTab] < 1) pages[currentTab] = 1;
+
   const start = (pages[currentTab] - 1) * PER_PAGE;
   const pageRows = rows.slice(start, start + PER_PAGE);
 
   el("feed-title").textContent = currentTab + " · " + selectedDate + (isToday ? " · сегодня" : "");
-  feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет")
-    + renderPagination(total, pages[currentTab]);
+  feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет") + renderPagination(total, pages[currentTab]);
 }
 
 function setOnline(online) {
@@ -224,9 +220,7 @@ function setOnline(online) {
   if (!pill) return;
   pill.classList.toggle("pill-green", online);
   pill.classList.toggle("pill-red", !online);
-  pill.innerHTML = online
-    ? '<span class="dot"></span> ОНЛАЙН'
-    : '<span class="dot"></span> НЕТ СВЯЗИ';
+  pill.innerHTML = online ? '<span class="dot"></span> ОНЛАЙН' : '<span class="dot"></span> НЕТ СВЯЗИ';
 }
 
 async function loadAll() {
@@ -239,9 +233,12 @@ async function loadAll() {
   cache.matrix = Array.isArray(data.matrix) ? data.matrix : [];
   cache.server = data.server || "—";
 
-  el("count-grim").textContent   = cache.grim.length;
-  el("count-vulcan").textContent = cache.vulcan.length;
-  el("count-matrix").textContent = cache.matrix.length;
+  const cg = el("count-grim");
+  const cv = el("count-vulcan");
+  const cm = el("count-matrix");
+  if (cg) cg.textContent = cache.grim.length;
+  if (cv) cv.textContent = cache.vulcan.length;
+  if (cm) cm.textContent = cache.matrix.length;
 }
 
 async function refresh() {
@@ -265,11 +262,10 @@ document.querySelectorAll(".tab").forEach(function (btn) {
 });
 
 document.addEventListener("click", function (e) {
-  const btn = e.target.closest(".page-btn");
-  if (!btn) return;
-  if (btn.disabled) return;
+  const btn = e.target.closest && e.target.closest(".page-btn");
+  if (!btn || btn.disabled) return;
   const p = parseInt(btn.getAttribute("data-page"), 10);
-  if (isNaN(p)) return;
+  if (isNaN(p) || p < 1) return;
   pages[currentTab] = p;
   renderCurrent();
   const feed = el("feed-body");
@@ -279,35 +275,43 @@ document.addEventListener("click", function (e) {
 const searchInput = el("search-input");
 const searchClear = el("search-clear");
 
-searchInput.addEventListener("input", function (e) {
-  searchQuery = e.target.value.trim();
-  searchClear.classList.toggle("visible", searchQuery.length > 0);
-  renderCurrent();
-});
+if (searchInput) {
+  searchInput.addEventListener("input", function (e) {
+    searchQuery = e.target.value.trim();
+    if (searchClear) searchClear.classList.toggle("visible", searchQuery.length > 0);
+    renderCurrent();
+  });
+}
 
-searchClear.addEventListener("click", function () {
-  searchInput.value = "";
-  searchQuery = "";
-  searchClear.classList.remove("visible");
-  renderCurrent();
-});
+if (searchClear) {
+  searchClear.addEventListener("click", function () {
+    searchInput.value = "";
+    searchQuery = "";
+    searchClear.classList.remove("visible");
+    renderCurrent();
+  });
+}
 
 const dateInput = el("date-input");
-dateInput.value = selectedDate;
-
-dateInput.addEventListener("change", function (e) {
-  if (!e.target.value) return;
-  selectedDate = e.target.value;
-  pages = { grim: 1, vulcan: 1, matrix: 1 };
-  refresh();
-});
-
-el("date-today").addEventListener("click", function () {
-  selectedDate = todayKey();
+if (dateInput) {
   dateInput.value = selectedDate;
-  pages = { grim: 1, vulcan: 1, matrix: 1 };
-  refresh();
-});
+  dateInput.addEventListener("change", function (e) {
+    if (!e.target.value) return;
+    selectedDate = e.target.value;
+    pages = { grim: 1, vulcan: 1, matrix: 1 };
+    refresh();
+  });
+}
+
+const dateToday = el("date-today");
+if (dateToday) {
+  dateToday.addEventListener("click", function () {
+    selectedDate = todayKey();
+    if (dateInput) dateInput.value = selectedDate;
+    pages = { grim: 1, vulcan: 1, matrix: 1 };
+    refresh();
+  });
+}
 
 refresh();
 setInterval(refresh, REFRESH_MS);
