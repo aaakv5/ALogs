@@ -4,7 +4,7 @@ const PER_PAGE = 50;
 const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
 
 let currentTab = "grim";
-let cache = { grim: [], vulcan: [], matrix: [], server: "—" };
+let cache = { grim: [], vulcan: [], matrix: [], chat: [], server: "—" };
 let searchQuery = "";
 let selectedDate = todayKey();
 let pages = { grim: 1, vulcan: 1, matrix: 1, search: 1 };
@@ -116,11 +116,27 @@ function normalizeMatrix(r) {
   };
 }
 
+function normalizeChat(r) {
+  const ts = r.timestamp || 0;
+  return {
+    date: fmtFull(ts),
+    player: String(r.player || "—"),
+    reason: String(r.world || "—"),
+    detail: String(r.message || ""),
+    vl: "—",
+    ping: "—",
+    source: "chat",
+    server: cache.server,
+    _ts: ts
+  };
+}
+
 function normalizeAll() {
   return {
     grim:   (cache.grim   || []).map(normalizeGrim),
     vulcan: (cache.vulcan || []).map(normalizeVulcan),
-    matrix: (cache.matrix || []).map(normalizeMatrix)
+    matrix: (cache.matrix || []).map(normalizeMatrix),
+    chat: (cache.chat || []).map(normalizeChat)
   };
 }
 
@@ -250,7 +266,10 @@ async function loadAll() {
   cache.grim   = Array.isArray(data.grim)   ? data.grim   : [];
   cache.vulcan = Array.isArray(data.vulcan) ? data.vulcan : [];
   cache.matrix = Array.isArray(data.matrix) ? data.matrix : [];
+  cache.chat = Array.isArray(data.chat) ? data.chat : [];
+  el("count-chat").textContent = cache.chat.length;
   cache.server = data.server || "—";
+  
 
   const cg = el("count-grim");
   const cv = el("count-vulcan");
