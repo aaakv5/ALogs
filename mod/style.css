@@ -340,3 +340,121 @@ body {
 .source-grim   { background: rgba(244, 63, 94, 0.1);  color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.25); }
 .source-vulcan { background: rgba(59, 130, 246, 0.1); color: #60a5fa;       border: 1px solid rgba(59, 130, 246, 0.25); }
 .source-matrix { background: rgba(234, 179, 8, 0.08); color: var(--yellow); border: 1px solid rgba(234, 179, 8, 0.25); }
+
+/* ===== Управление ===== */
+.controls {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px 42px 12px 16px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.search-box input:focus { border-color: var(--accent); }
+.search-box input::placeholder { color: var(--text-dim); }
+
+.search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: none;
+}
+.search-clear.visible { display: block; }
+.search-clear:hover { background: var(--border); color: var(--text); }
+
+.date-box {
+    display: flex;
+    gap: 8px;
+}
+
+.date-box input[type="date"] {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px 14px;
+    outline: none;
+    color-scheme: dark;
+}
+.date-box input[type="date"]:focus { border-color: var(--accent); }
+
+.date-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+}
+.date-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ===== Счётчик на табах ===== */
+.tab .count {
+    display: inline-block;
+    background: var(--bg-inset);
+    border-radius: 8px;
+    padding: 1px 7px;
+    font-size: 10px;
+    margin-left: 6px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.tab.active .count {
+    background: rgba(244, 63, 94, 0.15);
+    color: var(--accent);
+}
+
+/* ===== Бейдж источника ===== */
+.col-source { width: 100px; }
+
+.source-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.source-grim   { background: rgba(244, 63, 94, 0.1);  color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.25); }
+.source-vulcan { background: rgba(59, 130, 246, 0.1); color: #60a5fa;       border: 1px solid rgba(59, 130, 246, 0.25); }
+.source-matrix { background: rgba(234, 179, 8, 0.08); color: var(--yellow); border: 1px solid rgba(234, 179, 8, 0.25); }
+
+@media (max-width: 700px) {
+    .controls { grid-template-columns: 1fr; }
+}
