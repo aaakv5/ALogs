@@ -4,10 +4,10 @@ const PER_PAGE = 50;
 const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
 
 let currentTab = "grim";
-let cache = { grim: [], vulcan: [], matrix: [], chat: [], server: "—" };
+let cache = { grim: [], vulcan: [], matrix: [], chat: [], commands: [], server: "—" };
 let searchQuery = "";
 let selectedDate = todayKey();
-let pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, search: 1 };
+let pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, search: 1 };
 
 function el(id) { return document.getElementById(id); }
 function pad2(n) { return n < 10 ? "0" + n : "" + n; }
@@ -132,12 +132,29 @@ function normalizeChat(r) {
   };
 }
 
+function normalizeCommand(r) {
+  const ts = r.timestamp || 0;
+  return {
+    date: fmtFull(ts),
+    player: String(r.player || "—"),
+    world: String(r.world || "—"),
+    reason: String(r.world || "—"),
+    detail: String(r.command || ""),
+    vl: "—",
+    ping: "—",
+    source: "commands",
+    server: cache.server,
+    _ts: ts
+  };
+}
+
 function normalizeAll() {
   return {
     grim:   (cache.grim   || []).map(normalizeGrim),
     vulcan: (cache.vulcan || []).map(normalizeVulcan),
     matrix: (cache.matrix || []).map(normalizeMatrix),
-    chat:   (cache.chat   || []).map(normalizeChat)
+    chat:   (cache.chat   || []).map(normalizeChat),
+    commands: (cache.commands || []).map(normalizeCommand)
   };
 }
 
