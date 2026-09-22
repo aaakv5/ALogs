@@ -1,19 +1,20 @@
 const API_BASE = "https://logs.arcanomc.pw";
 const REFRESH_MS = 5000;
-const PER_PAGE = 100;
+const PER_PAGE = 50;
+const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
 
 let currentTab = "grim";
 let cache = { grim: [], vulcan: [], matrix: [], server: "—" };
 let searchQuery = "";
 let selectedDate = todayKey();
-let pages = { grim: 1, vulcan: 1, matrix: 1 };
+let pages = { grim: 1, vulcan: 1, matrix: 1, search: 1 };
 
 function el(id) { return document.getElementById(id); }
 function pad2(n) { return n < 10 ? "0" + n : "" + n; }
 
 function todayKey() {
-  const d = new Date();
-  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  const d = new Date(Date.now() + MSK_OFFSET_MS);
+  return d.getUTCFullYear() + "-" + pad2(d.getUTCMonth() + 1) + "-" + pad2(d.getUTCDate());
 }
 
 function escapeHtml(s) {
@@ -28,10 +29,23 @@ function escapeHtml(s) {
 
 function fmtFull(ts) {
   if (ts === null || ts === undefined || ts === "") return "—";
-  const d = new Date(typeof ts === "number" ? ts : Date.parse(ts));
-  if (isNaN(d.getTime())) return String(ts);
-  return pad2(d.getDate()) + "." + pad2(d.getMonth() + 1) + "." + d.getFullYear()
-    + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
+  let ms;
+  if (typeof ts === "number") ms = ts;
+  else {
+    ms = Date.parse(ts);
+    if (isNaN(ms)) return String(ts);
+  }
+  const d = new Date(ms + MSK_OFFSET_MS);
+  return pad2(d.getUTCDate()) + "." + pad2(d.getUTCMonth() + 1) + "." + d.getUTCFullYear()
+    + " " + pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes()) + ":" + pad2(d.getUTCSeconds());
+}
+
+function parseMsk(dtStr) {
+  if (!dtStr) return 0;
+  const m = String(dtStr).match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if (!m) return 0;
+  const y = +m[3], mo = +m[2] - 1, d = +m[1], h = +m[4], mi = +m[5], s = +m[6];
+  return Date.UTC(y, mo, d, h, mi, s) - MSK_OFFSET_MS;
 }
 
 function vlClass(vl) {
@@ -74,8 +88,6 @@ function normalizeVulcan(r) {
   if (r.client) parts.push("client: " + r.client);
   if (r.version) parts.push("v" + r.version);
 
-  const parsed = Date.parse(dt.replace(/(\d{2})\.(\d{2})\.(\d{4})/, "$3-$2-$1"));
-
   return {
     date: dt || "—",
     player: String(r.player || "—"),
@@ -85,14 +97,12 @@ function normalizeVulcan(r) {
     ping: r.ping != null ? r.ping : "—",
     source: "vulcan",
     server: cache.server,
-    _ts: isNaN(parsed) ? 0 : parsed
+    _ts: parseMsk(dt)
   };
 }
 
 function normalizeMatrix(r) {
   const raw = r.time || "";
-  const parsed = Date.parse(raw.replace(/(\d{2})\.(\d{2})\.(\d{4})/, "$3-$2-$1"));
-
   return {
     date: raw || "—",
     player: String(r.player || "—"),
@@ -102,7 +112,7 @@ function normalizeMatrix(r) {
     ping: r.ping != null ? r.ping : "—",
     source: "matrix",
     server: cache.server,
-    _ts: isNaN(parsed) ? 0 : parsed
+    _ts: parseMsk(raw)
   };
 }
 
@@ -147,13 +157,13 @@ function renderTable(rows, emptyText) {
   return html;
 }
 
-function renderPagination(total, page) {
+function renderPagination(total, page, key) {
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   if (totalPages <= 1) return "";
 
   let btns = [];
   function addBtn(p, label, active, disabled) {
-    btns.push('<button class="page-btn' + (active ? ' active' : '') + '" data-page="' + p + '"'
+    btns.push('<button class="page-btn' + (active ? ' active' : '') + '" data-page="' + p + '" data-key="' + key + '"'
       + (disabled ? ' disabled' : '') + '>' + label + '</button>');
   }
 
@@ -186,33 +196,42 @@ function renderPagination(total, page) {
 
 function renderCurrent() {
   const feed = el("feed-body");
+  const pag = el("feed-pagination");
   if (!feed) return;
 
   const data = normalizeAll();
-  const isToday = (selectedDate === todayKey());
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     const all = data.grim.concat(data.vulcan, data.matrix)
       .filter(function (r) { return r.player.toLowerCase().indexOf(q) !== -1; })
       .sort(sortByTs);
-    el("feed-title").textContent = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + all.length;
-    feed.innerHTML = renderTable(all, 'Ничего не найдено');
+
+    const total = all.length;
+    const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+    if (!pages.search || pages.search < 1) pages.search = 1;
+    if (pages.search > totalPages) pages.search = totalPages;
+    const start = (pages.search - 1) * PER_PAGE;
+
+    el("feed-title").textContent = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + total;
+    feed.innerHTML = renderTable(all.slice(start, start + PER_PAGE), 'Ничего не найдено');
+    if (pag) pag.innerHTML = renderPagination(total, pages.search, "search");
     return;
   }
 
+  const isToday = (selectedDate === todayKey());
   const rows = (data[currentTab] || []).slice().sort(sortByTs);
   const total = rows.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   if (!pages[currentTab] || pages[currentTab] < 1) pages[currentTab] = 1;
   if (pages[currentTab] > totalPages) pages[currentTab] = totalPages;
-
   const start = (pages[currentTab] - 1) * PER_PAGE;
   const pageRows = rows.slice(start, start + PER_PAGE);
 
   el("feed-title").textContent = currentTab + " · " + selectedDate + (isToday ? " · сегодня" : "");
-  feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет") + renderPagination(total, pages[currentTab]);
+  feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет");
+  if (pag) pag.innerHTML = renderPagination(total, pages[currentTab], currentTab);
 }
 
 function setOnline(online) {
@@ -265,8 +284,9 @@ document.addEventListener("click", function (e) {
   const btn = e.target.closest && e.target.closest(".page-btn");
   if (!btn || btn.disabled) return;
   const p = parseInt(btn.getAttribute("data-page"), 10);
+  const key = btn.getAttribute("data-key") || currentTab;
   if (isNaN(p) || p < 1) return;
-  pages[currentTab] = p;
+  pages[key] = p;
   renderCurrent();
   const feed = el("feed-body");
   if (feed) feed.scrollTop = 0;
@@ -278,6 +298,7 @@ const searchClear = el("search-clear");
 if (searchInput) {
   searchInput.addEventListener("input", function (e) {
     searchQuery = e.target.value.trim();
+    pages.search = 1;
     if (searchClear) searchClear.classList.toggle("visible", searchQuery.length > 0);
     renderCurrent();
   });
@@ -287,6 +308,7 @@ if (searchClear) {
   searchClear.addEventListener("click", function () {
     searchInput.value = "";
     searchQuery = "";
+    pages.search = 1;
     searchClear.classList.remove("visible");
     renderCurrent();
   });
@@ -298,7 +320,7 @@ if (dateInput) {
   dateInput.addEventListener("change", function (e) {
     if (!e.target.value) return;
     selectedDate = e.target.value;
-    pages = { grim: 1, vulcan: 1, matrix: 1 };
+    pages = { grim: 1, vulcan: 1, matrix: 1, search: 1 };
     refresh();
   });
 }
@@ -308,7 +330,7 @@ if (dateToday) {
   dateToday.addEventListener("click", function () {
     selectedDate = todayKey();
     if (dateInput) dateInput.value = selectedDate;
-    pages = { grim: 1, vulcan: 1, matrix: 1 };
+    pages = { grim: 1, vulcan: 1, matrix: 1, search: 1 };
     refresh();
   });
 }
