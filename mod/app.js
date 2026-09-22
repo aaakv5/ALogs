@@ -67,22 +67,22 @@ function normalizeGrim(r) {
 }
 
 function normalizeVulcan(r) {
-  const dt = (r.date || "—") + " " + (r.time || "");
-  const pos = (r.x && r.y && r.z)
-    ? "X: " + (+r.x).toFixed(1) + ", Y: " + (+r.y).toFixed(1) + ", Z: " + (+r.z).toFixed(1)
-    : "";
-  const detail = [pos, r.version ? "v" + r.version : ""].filter(Boolean).join(" • ");
+  const dt = ((r.date || "—") + " " + (r.time || "")).trim();
+  const reason = r.check ? (r.check + " (Type " + (r.type || "") + ")") : "—";
 
-  const parsed = Date.parse(
-    dt.trim().replace(/(\d{2})\.(\d{2})\.(\d{4})/, "$3-$2-$1")
-  );
+  const parts = [];
+  if (r.extra) parts.push(r.extra);
+  if (r.client) parts.push("client: " + r.client);
+  if (r.version) parts.push("v" + r.version);
+
+  const parsed = Date.parse(dt.replace(/(\d{2})\.(\d{2})\.(\d{4})/, "$3-$2-$1"));
 
   return {
-    date: dt.trim() || "—",
+    date: dt || "—",
     player: String(r.player || "—"),
-    reason: String(r.reason || "—"),
-    detail: detail,
-    vl: r.violations != null ? r.violations : 0,
+    reason: reason,
+    detail: parts.join(" • "),
+    vl: r.vl != null ? r.vl : 0,
     ping: r.ping != null ? r.ping : "—",
     source: "vulcan",
     _ts: isNaN(parsed) ? 0 : parsed
