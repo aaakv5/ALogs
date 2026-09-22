@@ -8,12 +8,11 @@ let selectedDate = todayKey();
 
 function el(id) { return document.getElementById(id); }
 
+function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+
 function todayKey() {
   const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return y + "-" + m + "-" + day;
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
 }
 
 function escapeHtml(s) {
@@ -26,16 +25,12 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
-/* ---------- Формат даты/времени ---------- */
-
-function fmtDateTime(ts) {
-  if (!ts) return "—";
-  const d = new Date(ts);
+function fmtFull(ts) {
+  if (ts === null || ts === undefined || ts === "") return "—";
+  const d = new Date(typeof ts === "number" ? ts : Date.parse(ts));
   if (isNaN(d.getTime())) return String(ts);
-  return d.toLocaleString("ru-RU", {
-    day: "2-digit", month: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit"
-  });
+  return pad2(d.getDate()) + "." + pad2(d.getMonth() + 1) + "." + d.getFullYear()
+    + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
 }
 
 function vlClass(vl) {
@@ -46,62 +41,67 @@ function vlClass(vl) {
 }
 
 function normalizeGrim(r) {
-  const time = r.occurred_at || r.created_at || r.time || r.timestamp;
+  const time = r.occurred_at || r.created_at;
   const player = r.player_name || r.player || r.username || r.uuid || "—";
   const reason = r.check_display || r.check_key || r.check_name || "—";
 
   const parts = [];
   if (r.check_desc) parts.push(r.check_desc);
   if (r.client_brand) {
-    const brand = r.client_pvn ? (r.client_brand + " " + r.client_pvn) : r.client_brand;
-    parts.push("client: " + brand);
+    parts.push("client: " + (r.client_pvn ? r.client_brand + " " + r.client_pvn : r.client_brand));
   }
 
   const vl = r.vl != null ? r.vl : (r.violations != null ? r.violations : 0);
   const ping = r.ping != null ? r.ping : "—";
 
-  let dateStr;
-  if (typeof time === "number") dateStr = fmtDateTime(time);
-  else dateStr = time ? String(time) : "—";
-
   return {
-    date: dateStr,
+    date: typeof time === "number" ? fmtFull(time) : (time ? String(time) : "—"),
     player: String(player),
     reason: String(reason),
     detail: parts.join(" • "),
     vl: vl,
     ping: ping,
-    source: "grim"
+    source: "grim",
+    _ts: typeof time === "number" ? time : 0
   };
 }
 
 function normalizeVulcan(r) {
-  const dt = r.date && r.time ? (r.date + " " + r.time) : (r.date || r.time || "—");
+  const dt = (r.date || "—") + " " + (r.time || "");
   const pos = (r.x && r.y && r.z)
     ? "X: " + (+r.x).toFixed(1) + ", Y: " + (+r.y).toFixed(1) + ", Z: " + (+r.z).toFixed(1)
     : "";
   const detail = [pos, r.version ? "v" + r.version : ""].filter(Boolean).join(" • ");
 
+  const parsed = Date.parse(
+    dt.trim().replace(/(\d{2})\.(\d{2})\.(\d{4})/, "$3-$2-$1")
+  );
+
   return {
-    date: dt,
+    date: dt.trim() || "—",
     player: String(r.player || "—"),
     reason: String(r.reason || "—"),
     detail: detail,
     vl: r.violations != null ? r.violations : 0,
     ping: r.ping != null ? r.ping : "—",
-    source: "vulcan"
+    source: "vulcan",
+    _ts: isNaN(parsed) ? 0 : parsed
   };
 }
 
 function normalizeMatrix(r) {
+  const raw = r.time || "";
+  const parsed = Date.parse(raw.replace(/(\d{2})\.(\d{2})\.(\d{4})/, "$3-$2-$1"));
+
   return {
-    date: r.time || "—",
+    date: raw || "—",
     player: String(r.player || "—"),
     reason: String(r.category || "—"),
     detail: r.detail ? (r.detail + " [" + (r.component || "") + "]") : "—",
     vl: r.vl != null ? r.vl : 0,
     ping: r.ping != null ? r.ping : "—",
-    source: "matrix"
+    source: "matrix",
+    _ts: isNaN(parsed) ? 0 : parsed
   };
 }
 
@@ -113,7 +113,7 @@ function normalizeAll() {
   };
 }
 
-/* ---------- Рендер ---------- */
+function sortByTs(a, b) { return (b._ts || 0) - (a._ts || 0); }
 
 function renderTable(rows, emptyText) {
   if (!rows.length) {
@@ -153,20 +153,18 @@ function renderCurrent() {
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     const all = data.grim.concat(data.vulcan, data.matrix)
-      .filter(function (r) { return r.player.toLowerCase().indexOf(q) !== -1; });
+      .filter(function (r) { return r.player.toLowerCase().indexOf(q) !== -1; })
+      .sort(sortByTs);
 
-    const title = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + all.length + ' записей';
-    el("feed-title").textContent = title;
+    el("feed-title").textContent = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + all.length + ' записей';
     feed.innerHTML = renderTable(all, 'Ничего не найдено');
     return;
   }
 
-  const rows = data[currentTab] || [];
+  const rows = (data[currentTab] || []).sort(sortByTs);
   el("feed-title").textContent = currentTab + " · " + selectedDate + (isToday ? " · сегодня" : "");
   feed.innerHTML = renderTable(rows, "Записей " + currentTab + " нет");
 }
-
-/* ---------- Онлайн-статус ---------- */
 
 function setOnline(online) {
   const pill = el("status-pill");
@@ -177,8 +175,6 @@ function setOnline(online) {
     ? '<span class="dot"></span> ОНЛАЙН'
     : '<span class="dot"></span> НЕТ СВЯЗИ';
 }
-
-/* ---------- Загрузка ---------- */
 
 async function loadAll() {
   const res = await fetch(API_BASE + "/all?date=" + encodeURIComponent(selectedDate), { cache: "no-store" });
@@ -205,8 +201,6 @@ async function refresh() {
   }
 }
 
-/* ---------- Табы ---------- */
-
 document.querySelectorAll(".tab").forEach(function (btn) {
   btn.addEventListener("click", function () {
     document.querySelectorAll(".tab").forEach(function (b) { b.classList.remove("active"); });
@@ -215,8 +209,6 @@ document.querySelectorAll(".tab").forEach(function (btn) {
     renderCurrent();
   });
 });
-
-/* ---------- Поиск ---------- */
 
 const searchInput = el("search-input");
 const searchClear = el("search-clear");
@@ -234,8 +226,6 @@ searchClear.addEventListener("click", function () {
   renderCurrent();
 });
 
-/* ---------- Календарь ---------- */
-
 const dateInput = el("date-input");
 dateInput.value = selectedDate;
 
@@ -250,8 +240,6 @@ el("date-today").addEventListener("click", function () {
   dateInput.value = selectedDate;
   refresh();
 });
-
-/* ---------- Старт ---------- */
 
 refresh();
 setInterval(refresh, REFRESH_MS);
