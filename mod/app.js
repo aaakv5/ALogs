@@ -1,10 +1,12 @@
 const API_BASE = "https://logs.arcanomc.pw";
 const REFRESH_MS = 5000;
+const PER_PAGE = 100;
 
 let currentTab = "grim";
 let cache = { grim: [], vulcan: [], matrix: [], server: "—" };
 let searchQuery = "";
 let selectedDate = todayKey();
+let pages = { grim: 1, vulcan: 1, matrix: 1 };
 
 function el(id) { return document.getElementById(id); }
 
@@ -150,6 +152,44 @@ function renderTable(rows, emptyText) {
     + '</tbody></table>';
 }
 
+function renderPagination(total, page, onPageClick) {
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  if (totalPages <= 1) return "";
+
+  let buttons = [];
+  const push = function (p, label, active, disabled) {
+    buttons.push(
+      '<button class="page-btn' + (active ? ' active' : '') + '" data-page="' + p + '"'
+      + (disabled ? ' disabled' : '') + '>' + label + '</button>'
+    );
+  };
+
+  push(page - 1, '‹', false, page <= 1);
+
+  const range = [];
+  const addPage = function (p) { if (range.indexOf(p) === -1 && p >= 1 && p <= totalPages) range.push(p); };
+  addPage(1);
+  addPage(2);
+  for (let i = page - 2; i <= page + 2; i++) addPage(i);
+  addPage(totalPages - 1);
+  addPage(totalPages);
+  range.sort(function (a, b) { return a - b; });
+
+  let prev = 0;
+  range.forEach(function (p) {
+    if (prev && p - prev > 1) buttons.push('<span class="page-dots">…</span>');
+    push(p, String(p), p === page, false);
+    prev = p;
+  });
+
+  push(page + 1, '›', false, page >= totalPages);
+
+  return '<div class="pagination" id="pagination">'
+    + '<span class="page-info">стр. ' + page + ' из ' + totalPages + ' · всего ' + total + '</span>'
+    + '<span class="page-btns">' + buttons.join("") + '</span>'
+    + '</div>';
+}
+
 function renderCurrent() {
   const feed = el("feed-body");
   const data = normalizeAll();
@@ -167,8 +207,16 @@ function renderCurrent() {
   }
 
   const rows = (data[currentTab] || []).sort(sortByTs);
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  if (pages[currentTab] > totalPages) pages[currentTab] = totalPages;
+  if (pages[currentTab] < 1) pages[currentTab] = 1;
+  const start = (pages[currentTab] - 1) * PER_PAGE;
+  const pageRows = rows.slice(start, start + PER_PAGE);
+
   el("feed-title").textContent = currentTab + " · " + selectedDate + (isToday ? " · сегодня" : "");
-  feed.innerHTML = renderTable(rows, "Записей " + currentTab + " нет");
+  feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет")
+    + renderPagination(total, pages[currentTab]);
 }
 
 function setOnline(online) {
@@ -216,6 +264,18 @@ document.querySelectorAll(".tab").forEach(function (btn) {
   });
 });
 
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest(".page-btn");
+  if (!btn) return;
+  if (btn.disabled) return;
+  const p = parseInt(btn.getAttribute("data-page"), 10);
+  if (isNaN(p)) return;
+  pages[currentTab] = p;
+  renderCurrent();
+  const feed = el("feed-body");
+  if (feed) feed.scrollTop = 0;
+});
+
 const searchInput = el("search-input");
 const searchClear = el("search-clear");
 
@@ -238,12 +298,14 @@ dateInput.value = selectedDate;
 dateInput.addEventListener("change", function (e) {
   if (!e.target.value) return;
   selectedDate = e.target.value;
+  pages = { grim: 1, vulcan: 1, matrix: 1 };
   refresh();
 });
 
 el("date-today").addEventListener("click", function () {
   selectedDate = todayKey();
   dateInput.value = selectedDate;
+  pages = { grim: 1, vulcan: 1, matrix: 1 };
   refresh();
 });
 
