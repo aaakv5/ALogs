@@ -14,17 +14,22 @@
     <header class="top">
         <div>
             <div class="top-label">LIVE</div>
-            <h1 class="top-title">Логи</h1>
+            <h1 class="top-title">Логи античитов</h1>
         </div>
         <span class="pill pill-green" id="status-pill">
             <span class="dot"></span> ОНЛАЙН
         </span>
     </header>
 
-    <nav class="tabs">
-        <button class="tab active" data-tab="grim">GrimAC</button>
-        <button class="tab" data-tab="vulcan">Vulcan</button>
-        <button class="tab" data-tab="matrix">Matrix</button>
+    <div class="search-box">
+        <input type="text" id="search-input" placeholder="Поиск по нику (например: pakaka)..." autocomplete="off">
+        <button id="search-clear" class="search-clear" title="Очистить">×</button>
+    </div>
+
+    <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="grim">GrimAC <span class="count" id="count-grim">0</span></button>
+        <button class="tab" data-tab="vulcan">Vulcan <span class="count" id="count-vulcan">0</span></button>
+        <button class="tab" data-tab="matrix">Matrix <span class="count" id="count-matrix">0</span></button>
     </nav>
 
     <section class="feed">
@@ -39,6 +44,6 @@
 
 </main>
 
-<script src="app.js?v=1"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
