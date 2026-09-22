@@ -139,7 +139,7 @@ function normalizeCommand(r) {
     player: String(r.player || "—"),
     world: String(r.world || "—"),
     reason: String(r.world || "—"),
-    detail: String(r.command || ""),
+    detail: "/" + String(r.command || ""),
     vl: "—",
     ping: "—",
     source: "commands",
@@ -150,10 +150,10 @@ function normalizeCommand(r) {
 
 function normalizeAll() {
   return {
-    grim:   (cache.grim   || []).map(normalizeGrim),
-    vulcan: (cache.vulcan || []).map(normalizeVulcan),
-    matrix: (cache.matrix || []).map(normalizeMatrix),
-    chat:   (cache.chat   || []).map(normalizeChat),
+    grim:     (cache.grim     || []).map(normalizeGrim),
+    vulcan:   (cache.vulcan   || []).map(normalizeVulcan),
+    matrix:   (cache.matrix   || []).map(normalizeMatrix),
+    chat:     (cache.chat     || []).map(normalizeChat),
     commands: (cache.commands || []).map(normalizeCommand)
   };
 }
@@ -264,7 +264,7 @@ function renderCurrent() {
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
-    const all = data.grim.concat(data.vulcan, data.matrix, data.chat)
+    const all = data.grim.concat(data.vulcan, data.matrix, data.chat, data.commands)
       .filter(function (r) { return r.player.toLowerCase().indexOf(q) !== -1; })
       .sort(sortByTs);
 
@@ -293,8 +293,8 @@ function renderCurrent() {
 
   el("feed-title").textContent = currentTab + " · " + selectedDate + (isToday ? " · сегодня" : "");
 
-  if (currentTab === "chat") {
-    feed.innerHTML = renderChatTable(pageRows, "Сообщений нет");
+  if (currentTab === "chat" || currentTab === "commands") {
+    feed.innerHTML = renderChatTable(pageRows, currentTab === "chat" ? "Сообщений нет" : "Команд нет");
   } else {
     feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет");
   }
@@ -315,20 +315,23 @@ async function loadAll() {
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
 
-  cache.grim   = Array.isArray(data.grim)   ? data.grim   : [];
-  cache.vulcan = Array.isArray(data.vulcan) ? data.vulcan : [];
-  cache.matrix = Array.isArray(data.matrix) ? data.matrix : [];
-  cache.chat   = Array.isArray(data.chat)   ? data.chat   : [];
-  cache.server = data.server || "—";
+  cache.grim     = Array.isArray(data.grim)     ? data.grim     : [];
+  cache.vulcan   = Array.isArray(data.vulcan)   ? data.vulcan   : [];
+  cache.matrix   = Array.isArray(data.matrix)   ? data.matrix   : [];
+  cache.chat     = Array.isArray(data.chat)     ? data.chat     : [];
+  cache.commands = Array.isArray(data.commands) ? data.commands : [];
+  cache.server   = data.server || "—";
 
   const cg = el("count-grim");
   const cv = el("count-vulcan");
   const cm = el("count-matrix");
   const cc = el("count-chat");
+  const cc2 = el("count-commands");
   if (cg) cg.textContent = cache.grim.length;
   if (cv) cv.textContent = cache.vulcan.length;
   if (cm) cm.textContent = cache.matrix.length;
   if (cc) cc.textContent = cache.chat.length;
+  if (cc2) cc2.textContent = cache.commands.length;
 }
 
 async function refresh() {
@@ -391,7 +394,7 @@ if (dateInput) {
   dateInput.addEventListener("change", function (e) {
     if (!e.target.value) return;
     selectedDate = e.target.value;
-    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, search: 1 };
+    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, search: 1 };
     refresh();
   });
 }
@@ -401,7 +404,7 @@ if (dateToday) {
   dateToday.addEventListener("click", function () {
     selectedDate = todayKey();
     if (dateInput) dateInput.value = selectedDate;
-    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, search: 1 };
+    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, search: 1 };
     refresh();
   });
 }
