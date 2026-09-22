@@ -45,15 +45,20 @@ function vlClass(vl) {
   return "low";
 }
 
-/* ---------- Нормализация ---------- */
-
 function normalizeGrim(r) {
-  const time = r.created_at || r.time || r.timestamp || r.date || r.inserted_at;
-  const player = r.player || r.player_name || r.username || r.uuid || "—";
-  const reason = r.check_name || r.check || r.type || r.stable_key || "—";
-  const detail = r.description || r.detail || r.info || r.verbose || "";
-  const vl = r.vl != null ? r.vl : (r.violations != null ? r.violations : (r.level != null ? r.level : 0));
-  const ping = r.ping != null ? r.ping : (r.keepalive != null ? r.keepalive : (r.keep_alive_ping != null ? r.keep_alive_ping : "—"));
+  const time = r.occurred_at || r.created_at || r.time || r.timestamp;
+  const player = r.player_name || r.player || r.username || r.uuid || "—";
+  const reason = r.check_display || r.check_key || r.check_name || "—";
+
+  const parts = [];
+  if (r.check_desc) parts.push(r.check_desc);
+  if (r.client_brand) {
+    const brand = r.client_pvn ? (r.client_brand + " " + r.client_pvn) : r.client_brand;
+    parts.push("client: " + brand);
+  }
+
+  const vl = r.vl != null ? r.vl : (r.violations != null ? r.violations : 0);
+  const ping = r.ping != null ? r.ping : "—";
 
   let dateStr;
   if (typeof time === "number") dateStr = fmtDateTime(time);
@@ -63,7 +68,7 @@ function normalizeGrim(r) {
     date: dateStr,
     player: String(player),
     reason: String(reason),
-    detail: String(detail),
+    detail: parts.join(" • "),
     vl: vl,
     ping: ping,
     source: "grim"
