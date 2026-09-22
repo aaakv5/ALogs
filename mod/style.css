@@ -468,3 +468,19 @@ body {
 @media (max-width: 700px) {
     .controls { grid-template-columns: 1fr; }
 }
+
+.col-server { width: 90px; }
+
+.server-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    white-space: nowrap;
+}
