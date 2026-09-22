@@ -7,7 +7,7 @@ let currentTab = "grim";
 let cache = { grim: [], vulcan: [], matrix: [], chat: [], server: "—" };
 let searchQuery = "";
 let selectedDate = todayKey();
-let pages = { grim: 1, vulcan: 1, matrix: 1, search: 1 };
+let pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, search: 1 };
 
 function el(id) { return document.getElementById(id); }
 function pad2(n) { return n < 10 ? "0" + n : "" + n; }
@@ -136,7 +136,7 @@ function normalizeAll() {
     grim:   (cache.grim   || []).map(normalizeGrim),
     vulcan: (cache.vulcan || []).map(normalizeVulcan),
     matrix: (cache.matrix || []).map(normalizeMatrix),
-    chat: (cache.chat || []).map(normalizeChat)
+    chat:   (cache.chat   || []).map(normalizeChat)
   };
 }
 
@@ -219,7 +219,7 @@ function renderCurrent() {
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
-    const all = data.grim.concat(data.vulcan, data.matrix)
+    const all = data.grim.concat(data.vulcan, data.matrix, data.chat)
       .filter(function (r) { return r.player.toLowerCase().indexOf(q) !== -1; })
       .sort(sortByTs);
 
@@ -266,17 +266,17 @@ async function loadAll() {
   cache.grim   = Array.isArray(data.grim)   ? data.grim   : [];
   cache.vulcan = Array.isArray(data.vulcan) ? data.vulcan : [];
   cache.matrix = Array.isArray(data.matrix) ? data.matrix : [];
-  cache.chat = Array.isArray(data.chat) ? data.chat : [];
-  el("count-chat").textContent = cache.chat.length;
+  cache.chat   = Array.isArray(data.chat)   ? data.chat   : [];
   cache.server = data.server || "—";
-  
 
   const cg = el("count-grim");
   const cv = el("count-vulcan");
   const cm = el("count-matrix");
+  const cc = el("count-chat");
   if (cg) cg.textContent = cache.grim.length;
   if (cv) cv.textContent = cache.vulcan.length;
   if (cm) cm.textContent = cache.matrix.length;
+  if (cc) cc.textContent = cache.chat.length;
 }
 
 async function refresh() {
@@ -339,7 +339,7 @@ if (dateInput) {
   dateInput.addEventListener("change", function (e) {
     if (!e.target.value) return;
     selectedDate = e.target.value;
-    pages = { grim: 1, vulcan: 1, matrix: 1, search: 1 };
+    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, search: 1 };
     refresh();
   });
 }
@@ -349,7 +349,7 @@ if (dateToday) {
   dateToday.addEventListener("click", function () {
     selectedDate = todayKey();
     if (dateInput) dateInput.value = selectedDate;
-    pages = { grim: 1, vulcan: 1, matrix: 1, search: 1 };
+    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, search: 1 };
     refresh();
   });
 }
