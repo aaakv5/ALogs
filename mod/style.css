@@ -133,13 +133,16 @@ body {
     border-bottom-color: var(--accent);
 }
 
-/* ===== Live-карточка ===== */
 .feed {
     background: linear-gradient(180deg, #141417 0%, #101014 100%);
     border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 240px);
+    min-height: 400px;
 }
 
 .feed::before {
@@ -168,10 +171,11 @@ body {
 }
 
 .feed-body {
-    max-height: 640px;
+    flex: 1 1 auto;
     overflow-y: auto;
     font-family: var(--mono);
     font-size: 12px;
+    min-height: 0;
 }
 
 /* ===== Таблица ===== */
@@ -549,4 +553,8 @@ body {
 @media (max-width: 700px) {
     .pagination { padding: 12px 14px; }
     .page-btn { padding: 4px 8px; font-size: 11px; min-width: 28px; }
+}
+
+.feed-pagination:empty {
+    display: none;
 }
