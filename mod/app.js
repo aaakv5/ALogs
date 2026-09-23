@@ -392,14 +392,25 @@ function showGate() {
 }
 
 async function login(password) {
-  const res = await fetch(API_BASE + "/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password: password })
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.token || null;
+  const controller = new AbortController();
+  const timer = setTimeout(function () { controller.abort(); }, 10000);
+  try {
+    const res = await fetch(API_BASE + "/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: password }),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    if (!res.ok) return { error: "Неверный пароль" };
+    const data = await res.json();
+    if (!data.token) return { error: "Сервер не вернул токен" };
+    return { token: data.token };
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === "AbortError") return { error: "Сервер не отвечает (>10 сек)" };
+    return { error: "Сеть недоступна: " + (e.message || "ошибка") };
+  }
 }
 
 async function initAuth() {
