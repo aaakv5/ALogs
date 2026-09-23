@@ -35,7 +35,6 @@ body {
 
 .wrap { max-width: 1400px; margin: 0 auto; }
 
-/* ===== Заголовок ===== */
 .top {
     display: flex;
     justify-content: space-between;
@@ -57,7 +56,6 @@ body {
     letter-spacing: -0.3px;
 }
 
-/* ===== Плашки ===== */
 .pill {
     display: inline-flex;
     align-items: center;
@@ -102,7 +100,6 @@ body {
     50% { opacity: 0.4; }
 }
 
-/* ===== Табы ===== */
 .tabs {
     display: flex;
     gap: 6px;
@@ -178,7 +175,6 @@ body {
     min-height: 0;
 }
 
-/* ===== Таблица ===== */
 .feed-table {
     width: 100%;
     border-collapse: collapse;
@@ -247,7 +243,6 @@ body {
     font-size: 13px;
 }
 
-/* ===== Скроллбар ===== */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -256,7 +251,6 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover { background: #33333d; }
 
-/* ===== Адаптив ===== */
 @media (max-width: 900px) {
     body { padding: 20px 14px; }
     .feed-table thead th,
@@ -272,7 +266,6 @@ body {
     .col-type { display: none; }
 }
 
-/* ===== Поиск ===== */
 .search-box {
     position: relative;
     margin-bottom: 16px;
@@ -313,7 +306,6 @@ body {
 .search-clear.visible { display: block; }
 .search-clear:hover { background: var(--border); color: var(--text); }
 
-/* ===== Счётчик на табах ===== */
 .tab .count {
     display: inline-block;
     background: var(--bg-inset);
@@ -329,7 +321,6 @@ body {
     color: var(--accent);
 }
 
-/* ===== Бейдж источника (для поиска) ===== */
 .col-source { width: 90px; }
 
 .source-badge {
@@ -358,7 +349,6 @@ body {
     border: 1px solid rgba(56, 189, 248, 0.3);
 }
 
-/* ===== Управление ===== */
 .controls {
     display: grid;
     grid-template-columns: 1fr 260px;
@@ -460,7 +450,6 @@ body {
     color: var(--accent);
 }
 
-/* ===== Бейдж источника ===== */
 .col-source { width: 100px; }
 
 .source-badge {
@@ -493,7 +482,6 @@ body {
     white-space: nowrap;
 }
 
-/* ===== Пагинация ===== */
 .pagination {
     display: flex;
     justify-content: space-between;
@@ -585,7 +573,6 @@ body {
 
 .col-question { width: 40%; color: var(--text); }
 
-/* ===== Auth Gate ===== */
 .auth-gate {
     position: fixed;
     inset: 0;
@@ -668,3 +655,20 @@ body {
     margin-top: 12px;
     min-height: 16px;
 }
+
+.server-select {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    height: 38px;
+    box-sizing: border-box;
+    cursor: pointer;
+    min-width: 130px;
+}
+
+.server-select:focus { border-color: var(--accent); }
