@@ -363,8 +363,6 @@ function setOnline(online) {
   pill.innerHTML = online ? '<span class="dot"></span> ОНЛАЙН' : '<span class="dot"></span> НЕТ СВЯЗИ';
 }
 
-/* ===== Auth ===== */
-
 function getToken() {
   return localStorage.getItem("alogs_token") || "";
 }
@@ -443,15 +441,15 @@ async function initAuth() {
     const val = input.value;
     if (!val) return;
     if (err) err.textContent = "Проверка...";
-    const newToken = await login(val);
-    if (newToken) {
-      setToken(newToken);
+    const result = await login(val);
+    if (result.token) {
+      setToken(result.token);
       if (err) err.textContent = "";
       await loadServers();
       showMain();
       bootData();
     } else {
-      if (err) err.textContent = "Неверный пароль";
+      if (err) err.textContent = result.error || "Ошибка входа";
       input.value = "";
       input.focus();
     }
