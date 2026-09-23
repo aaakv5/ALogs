@@ -507,8 +507,6 @@ async function loadServers() {
   fillServerSelect();
 }
 
-/* ===== Данные ===== */
-
 async function loadAll() {
   const token = getToken();
 
@@ -572,8 +570,6 @@ async function refresh() {
     setOnline(false);
   }
 }
-
-/* ===== Обработчики ===== */
 
 document.querySelectorAll(".tab").forEach(function (btn) {
   btn.addEventListener("click", function () {
@@ -647,8 +643,6 @@ if (serverSelect) {
     refresh();
   });
 }
-
-/* ===== Старт ===== */
 
 function bootData() {
   if (dataInterval) return;
