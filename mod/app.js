@@ -160,8 +160,8 @@ function normalizeVote(r) {
   return {
     date: fmtFull(ts),
     player: String(r.player || "—"),
-    reason: String(r.question || "—"),
-    detail: String(r.answer || "—"),
+    reason: String(r.answer || "—"),
+    detail: String(r.question || "—"),
     source: "votes",
     server: currentServerLabel(),
     _ts: ts
