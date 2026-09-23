@@ -434,7 +434,6 @@ body {
 }
 .date-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ===== Счётчик на табах ===== */
 .tab .count {
     display: inline-block;
     background: var(--bg-inset);
