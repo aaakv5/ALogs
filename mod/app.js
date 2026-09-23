@@ -1,66 +1,4 @@
 const API_BASE = "https://logs.arcanomc.pw";
-const AUTH_PASSWORD_HASH = "2ab8bdfa34849abcce002e5ff3cb719f541f43443503c45d11f8f06df5d32798";
-
-async function sha256(text) {
-    const buf = new TextEncoder().encode(text);
-    const hashBuf = await crypto.subtle.digest("SHA-256", buf);
-    return Array.from(new Uint8Array(hashBuf))
-        .map(function (b) { return b.toString(16).padStart(2, "0"); })
-        .join("");
-}
-
-async function checkPassword(input) {
-    const hash = await sha256(input);
-    return hash === AUTH_PASSWORD_HASH;
-}
-
-function showMain() {
-    const gate = document.getElementById("auth-gate");
-    const main = document.getElementById("main-wrap");
-    if (gate) gate.classList.add("hidden");
-    if (main) main.style.display = "";
-}
-
-async function initAuth() {
-    const saved = localStorage.getItem("alogs_auth");
-    if (saved === AUTH_PASSWORD_HASH) {
-        showMain();
-        return true;
-    }
-
-    const gate = document.getElementById("auth-gate");
-    const input = document.getElementById("auth-input");
-    const btn = document.getElementById("auth-btn");
-    const err = document.getElementById("auth-error");
-    if (!gate || !input || !btn) return false;
-
-    if (gate) gate.classList.remove("hidden");
-
-    function tryLogin() {
-        const val = input.value;
-        if (!val) return;
-        checkPassword(val).then(function (ok) {
-            if (ok) {
-                localStorage.setItem("alogs_auth", AUTH_PASSWORD_HASH);
-                showMain();
-                bootData();
-            } else {
-                err.textContent = "Неверный пароль";
-                input.value = "";
-                input.focus();
-            }
-        });
-    }
-
-    btn.addEventListener("click", tryLogin);
-    input.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") tryLogin();
-    });
-    input.focus();
-
-    return false;
-}
-
 const REFRESH_MS = 5000;
 const PER_PAGE = 50;
 const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
@@ -70,6 +8,7 @@ let cache = { grim: [], vulcan: [], matrix: [], chat: [], commands: [], votes: [
 let searchQuery = "";
 let selectedDate = todayKey();
 let pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, votes: 1, search: 1 };
+let dataInterval = null;
 
 function el(id) { return document.getElementById(id); }
 function pad2(n) { return n < 10 ? "0" + n : "" + n; }
@@ -415,8 +354,111 @@ function setOnline(online) {
   pill.innerHTML = online ? '<span class="dot"></span> ОНЛАЙН' : '<span class="dot"></span> НЕТ СВЯЗИ';
 }
 
+function getToken() {
+  return localStorage.getItem("alogs_token") || "";
+}
+
+function setToken(t) {
+  localStorage.setItem("alogs_token", t);
+}
+
+function clearToken() {
+  localStorage.removeItem("alogs_token");
+}
+
+function showMain() {
+  const gate = el("auth-gate");
+  const main = el("main-wrap");
+  if (gate) gate.classList.add("hidden");
+  if (main) main.style.display = "";
+}
+
+function showGate() {
+  const gate = el("auth-gate");
+  const main = el("main-wrap");
+  if (gate) gate.classList.remove("hidden");
+  if (main) main.style.display = "none";
+}
+
+async function login(password) {
+  const res = await fetch(API_BASE + "/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: password })
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.token || null;
+}
+
+async function initAuth() {
+  const token = getToken();
+  if (token) {
+    try {
+      const res = await fetch(API_BASE + "/all?date=" + encodeURIComponent(todayKey()), {
+        headers: { "Authorization": "Bearer " + token },
+        cache: "no-store"
+      });
+      if (res.ok) {
+        showMain();
+        return true;
+      }
+    } catch (e) {}
+    clearToken();
+  }
+
+  const gate = el("auth-gate");
+  const input = el("auth-input");
+  const btn = el("auth-btn");
+  const err = el("auth-error");
+  if (!gate || !input || !btn) return false;
+
+  showGate();
+
+  async function tryLogin() {
+    const val = input.value;
+    if (!val) return;
+    if (err) err.textContent = "Проверка...";
+    const newToken = await login(val);
+    if (newToken) {
+      setToken(newToken);
+      if (err) err.textContent = "";
+      showMain();
+      bootData();
+    } else {
+      if (err) err.textContent = "Неверный пароль";
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  btn.addEventListener("click", tryLogin);
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") tryLogin();
+  });
+  input.focus();
+
+  return false;
+}
+
 async function loadAll() {
-  const res = await fetch(API_BASE + "/all?date=" + encodeURIComponent(selectedDate), { cache: "no-store" });
+  const token = getToken();
+  const res = await fetch(
+    API_BASE + "/all?date=" + encodeURIComponent(selectedDate),
+    {
+      headers: { "Authorization": "Bearer " + token },
+      cache: "no-store"
+    }
+  );
+
+  if (res.status === 401) {
+    clearToken();
+    showGate();
+    const err = el("auth-error");
+    if (err) err.textContent = "Сессия истекла. Войдите заново.";
+    throw new Error("Unauthorized");
+  }
+
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
 
@@ -517,13 +559,12 @@ if (dateToday) {
   });
 }
 
-let dataInterval = null;
 function bootData() {
-    if (dataInterval) return;
-    refresh();
-    dataInterval = setInterval(refresh, REFRESH_MS);
+  if (dataInterval) return;
+  refresh();
+  dataInterval = setInterval(refresh, REFRESH_MS);
 }
 
 initAuth().then(function (loggedIn) {
-    if (loggedIn) bootData();
+  if (loggedIn) bootData();
 });
