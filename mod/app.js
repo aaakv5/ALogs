@@ -4,9 +4,11 @@ const PER_PAGE = 50;
 const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
 
 let currentTab = "grim";
-let cache = { grim: [], vulcan: [], matrix: [], chat: [], commands: [], votes: [], server: "—" };
+let cache = { grim: [], vulcan: [], matrix: [], chat: [], commands: [], votes: [] };
 let searchQuery = "";
 let selectedDate = todayKey();
+let selectedServer = "";
+let serversList = [];
 let pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, votes: 1, search: 1 };
 let dataInterval = null;
 
@@ -56,6 +58,10 @@ function vlClass(vl) {
   return "low";
 }
 
+function currentServerLabel() {
+  return selectedServer || "—";
+}
+
 function normalizeGrim(r) {
   const time = r.occurred_at || r.created_at;
   const player = r.player_name || r.player || r.username || r.uuid || "—";
@@ -75,7 +81,7 @@ function normalizeGrim(r) {
     vl: r.vl != null ? r.vl : (r.violations != null ? r.violations : 0),
     ping: r.ping != null ? r.ping : "—",
     source: "grim",
-    server: cache.server,
+    server: currentServerLabel(),
     _ts: typeof time === "number" ? time : 0
   };
 }
@@ -97,7 +103,7 @@ function normalizeVulcan(r) {
     vl: r.vl != null ? r.vl : 0,
     ping: r.ping != null ? r.ping : "—",
     source: "vulcan",
-    server: cache.server,
+    server: currentServerLabel(),
     _ts: parseMsk(dt)
   };
 }
@@ -112,7 +118,7 @@ function normalizeMatrix(r) {
     vl: r.vl != null ? r.vl : 0,
     ping: r.ping != null ? r.ping : "—",
     source: "matrix",
-    server: cache.server,
+    server: currentServerLabel(),
     _ts: parseMsk(raw)
   };
 }
@@ -128,7 +134,7 @@ function normalizeChat(r) {
     vl: "—",
     ping: "—",
     source: "chat",
-    server: cache.server,
+    server: currentServerLabel(),
     _ts: ts
   };
 }
@@ -144,7 +150,7 @@ function normalizeCommand(r) {
     vl: "—",
     ping: "—",
     source: "commands",
-    server: cache.server,
+    server: currentServerLabel(),
     _ts: ts
   };
 }
@@ -157,7 +163,7 @@ function normalizeVote(r) {
     reason: String(r.question || "—"),
     detail: String(r.answer || "—"),
     source: "votes",
-    server: String(r.server || cache.server || "—"),
+    server: currentServerLabel(),
     _ts: ts
   };
 }
@@ -317,7 +323,8 @@ function renderCurrent() {
     const start = (pages.search - 1) * PER_PAGE;
     const pageRows = all.slice(start, start + PER_PAGE);
 
-    el("feed-title").textContent = 'поиск "' + searchQuery + '" · ' + selectedDate + ' · ' + total;
+    el("feed-title").textContent = 'поиск "' + searchQuery + '" · ' + selectedDate
+      + (selectedServer ? ' · ' + selectedServer : '') + ' · ' + total;
     feed.innerHTML = renderTable(pageRows, 'Ничего не найдено');
     if (pag) pag.innerHTML = renderPagination(total, pages.search, "search");
     return;
@@ -333,7 +340,9 @@ function renderCurrent() {
   const start = (pages[currentTab] - 1) * PER_PAGE;
   const pageRows = rows.slice(start, start + PER_PAGE);
 
-  el("feed-title").textContent = currentTab + " · " + selectedDate + (isToday ? " · сегодня" : "");
+  el("feed-title").textContent = currentTab + " · " + selectedDate
+    + (selectedServer ? " · " + selectedServer : "")
+    + (isToday ? " · сегодня" : "");
 
   if (currentTab === "chat" || currentTab === "commands") {
     feed.innerHTML = renderChatTable(pageRows, currentTab === "chat" ? "Сообщений нет" : "Команд нет");
@@ -353,6 +362,8 @@ function setOnline(online) {
   pill.classList.toggle("pill-red", !online);
   pill.innerHTML = online ? '<span class="dot"></span> ОНЛАЙН' : '<span class="dot"></span> НЕТ СВЯЗИ';
 }
+
+/* ===== Auth ===== */
 
 function getToken() {
   return localStorage.getItem("alogs_token") || "";
@@ -395,11 +406,13 @@ async function initAuth() {
   const token = getToken();
   if (token) {
     try {
-      const res = await fetch(API_BASE + "/all?date=" + encodeURIComponent(todayKey()), {
+      const res = await fetch(API_BASE + "/servers", {
         headers: { "Authorization": "Bearer " + token },
         cache: "no-store"
       });
       if (res.ok) {
+        serversList = await res.json();
+        fillServerSelect();
         showMain();
         return true;
       }
@@ -423,6 +436,7 @@ async function initAuth() {
     if (newToken) {
       setToken(newToken);
       if (err) err.textContent = "";
+      await loadServers();
       showMain();
       bootData();
     } else {
@@ -441,10 +455,66 @@ async function initAuth() {
   return false;
 }
 
+/* ===== Серверы ===== */
+
+function fillServerSelect() {
+  const sel = el("server-select");
+  if (!sel) return;
+
+  sel.innerHTML = "";
+
+  if (!serversList.length) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "— нет серверов —";
+    sel.appendChild(opt);
+    selectedServer = "";
+    return;
+  }
+
+  serversList.forEach(function (s) {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = s;
+    sel.appendChild(opt);
+  });
+
+  if (selectedServer && serversList.indexOf(selectedServer) !== -1) {
+    sel.value = selectedServer;
+  } else {
+    selectedServer = serversList[0];
+    sel.value = selectedServer;
+  }
+}
+
+async function loadServers() {
+  const token = getToken();
+  const res = await fetch(API_BASE + "/servers", {
+    headers: { "Authorization": "Bearer " + token },
+    cache: "no-store"
+  });
+  if (!res.ok) return;
+  serversList = await res.json();
+  fillServerSelect();
+}
+
+/* ===== Данные ===== */
+
 async function loadAll() {
   const token = getToken();
+
+  if (!serversList.length) {
+    await loadServers();
+  }
+
+  if (!selectedServer) {
+    cache = { grim: [], vulcan: [], matrix: [], chat: [], commands: [], votes: [] };
+    return;
+  }
+
   const res = await fetch(
-    API_BASE + "/all?date=" + encodeURIComponent(selectedDate),
+    API_BASE + "/all?date=" + encodeURIComponent(selectedDate)
+      + "&server=" + encodeURIComponent(selectedServer),
     {
       headers: { "Authorization": "Bearer " + token },
       cache: "no-store"
@@ -468,7 +538,6 @@ async function loadAll() {
   cache.chat     = Array.isArray(data.chat)     ? data.chat     : [];
   cache.commands = Array.isArray(data.commands) ? data.commands : [];
   cache.votes    = Array.isArray(data.votes)    ? data.votes    : [];
-  cache.server   = data.server || "—";
 
   const cg = el("count-grim");
   const cv = el("count-vulcan");
@@ -494,6 +563,8 @@ async function refresh() {
     setOnline(false);
   }
 }
+
+/* ===== Обработчики ===== */
 
 document.querySelectorAll(".tab").forEach(function (btn) {
   btn.addEventListener("click", function () {
@@ -558,6 +629,17 @@ if (dateToday) {
     refresh();
   });
 }
+
+const serverSelect = el("server-select");
+if (serverSelect) {
+  serverSelect.addEventListener("change", function (e) {
+    selectedServer = e.target.value;
+    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, votes: 1, search: 1 };
+    refresh();
+  });
+}
+
+/* ===== Старт ===== */
 
 function bootData() {
   if (dataInterval) return;
