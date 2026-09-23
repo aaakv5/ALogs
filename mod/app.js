@@ -4,10 +4,10 @@ const PER_PAGE = 50;
 const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
 
 let currentTab = "grim";
-let cache = { grim: [], vulcan: [], matrix: [], chat: [], commands: [], server: "—" };
+let cache = { grim: [], vulcan: [], matrix: [], chat: [], commands: [], votes: [], server: "—" };
 let searchQuery = "";
 let selectedDate = todayKey();
-let pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, search: 1 };
+let pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, votes: 1, search: 1 };
 
 function el(id) { return document.getElementById(id); }
 function pad2(n) { return n < 10 ? "0" + n : "" + n; }
@@ -148,13 +148,27 @@ function normalizeCommand(r) {
   };
 }
 
+function normalizeVote(r) {
+  const ts = r.timestamp || 0;
+  return {
+    date: fmtFull(ts),
+    player: String(r.player || "—"),
+    reason: String(r.question || "—"),
+    detail: String(r.answer || "—"),
+    source: "votes",
+    server: String(r.server || cache.server || "—"),
+    _ts: ts
+  };
+}
+
 function normalizeAll() {
   return {
     grim:     (cache.grim     || []).map(normalizeGrim),
     vulcan:   (cache.vulcan   || []).map(normalizeVulcan),
     matrix:   (cache.matrix   || []).map(normalizeMatrix),
     chat:     (cache.chat     || []).map(normalizeChat),
-    commands: (cache.commands || []).map(normalizeCommand)
+    commands: (cache.commands || []).map(normalizeCommand),
+    votes:    (cache.votes    || []).map(normalizeVote)
   };
 }
 
@@ -218,6 +232,33 @@ function renderChatTable(rows, emptyText) {
   return html;
 }
 
+function renderVoteTable(rows, emptyText) {
+  if (!rows.length) {
+    return '<div class="feed-empty">' + escapeHtml(emptyText || "Нет данных") + '</div>';
+  }
+  let html = '<table class="feed-table"><thead><tr>';
+  html += '<th class="col-time">Дата</th>';
+  html += '<th class="col-player">Игрок</th>';
+  html += '<th class="col-server">Сервер</th>';
+  html += '<th class="col-source">Источник</th>';
+  html += '<th class="col-question">Вопрос</th>';
+  html += '<th class="col-detail">Ответ</th>';
+  html += '</tr></thead><tbody>';
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    html += '<tr>'
+      + '<td class="col-time">' + escapeHtml(r.date) + '</td>'
+      + '<td class="col-player">' + escapeHtml(r.player) + '</td>'
+      + '<td class="col-server"><span class="server-badge">' + escapeHtml(r.server || "—") + '</span></td>'
+      + '<td class="col-source"><span class="source-badge source-' + r.source + '">' + escapeHtml(r.source) + '</span></td>'
+      + '<td class="col-question">' + escapeHtml(r.reason) + '</td>'
+      + '<td class="col-detail">' + escapeHtml(r.detail) + '</td>'
+      + '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
 function renderPagination(total, page, key) {
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   if (totalPages <= 1) return "";
@@ -264,7 +305,7 @@ function renderCurrent() {
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
-    const all = data.grim.concat(data.vulcan, data.matrix, data.chat, data.commands)
+    const all = data.grim.concat(data.vulcan, data.matrix, data.chat, data.commands, data.votes)
       .filter(function (r) { return r.player.toLowerCase().indexOf(q) !== -1; })
       .sort(sortByTs);
 
@@ -295,6 +336,8 @@ function renderCurrent() {
 
   if (currentTab === "chat" || currentTab === "commands") {
     feed.innerHTML = renderChatTable(pageRows, currentTab === "chat" ? "Сообщений нет" : "Команд нет");
+  } else if (currentTab === "votes") {
+    feed.innerHTML = renderVoteTable(pageRows, "Голосов нет");
   } else {
     feed.innerHTML = renderTable(pageRows, "Записей " + currentTab + " нет");
   }
@@ -320,6 +363,7 @@ async function loadAll() {
   cache.matrix   = Array.isArray(data.matrix)   ? data.matrix   : [];
   cache.chat     = Array.isArray(data.chat)     ? data.chat     : [];
   cache.commands = Array.isArray(data.commands) ? data.commands : [];
+  cache.votes    = Array.isArray(data.votes)    ? data.votes    : [];
   cache.server   = data.server || "—";
 
   const cg = el("count-grim");
@@ -327,11 +371,13 @@ async function loadAll() {
   const cm = el("count-matrix");
   const cc = el("count-chat");
   const cc2 = el("count-commands");
+  const cv2 = el("count-votes");
   if (cg) cg.textContent = cache.grim.length;
   if (cv) cv.textContent = cache.vulcan.length;
   if (cm) cm.textContent = cache.matrix.length;
   if (cc) cc.textContent = cache.chat.length;
   if (cc2) cc2.textContent = cache.commands.length;
+  if (cv2) cv2.textContent = cache.votes.length;
 }
 
 async function refresh() {
@@ -394,7 +440,7 @@ if (dateInput) {
   dateInput.addEventListener("change", function (e) {
     if (!e.target.value) return;
     selectedDate = e.target.value;
-    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, search: 1 };
+    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, votes: 1, search: 1 };
     refresh();
   });
 }
@@ -404,7 +450,7 @@ if (dateToday) {
   dateToday.addEventListener("click", function () {
     selectedDate = todayKey();
     if (dateInput) dateInput.value = selectedDate;
-    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, search: 1 };
+    pages = { grim: 1, vulcan: 1, matrix: 1, chat: 1, commands: 1, votes: 1, search: 1 };
     refresh();
   });
 }
