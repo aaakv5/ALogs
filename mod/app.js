@@ -1,4 +1,66 @@
 const API_BASE = "https://logs.arcanomc.pw";
+const AUTH_PASSWORD_HASH = "2ab8bdfa34849abcce002e5ff3cb719f541f43443503c45d11f8f06df5d32798";
+
+async function sha256(text) {
+    const buf = new TextEncoder().encode(text);
+    const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(hashBuf))
+        .map(function (b) { return b.toString(16).padStart(2, "0"); })
+        .join("");
+}
+
+async function checkPassword(input) {
+    const hash = await sha256(input);
+    return hash === AUTH_PASSWORD_HASH;
+}
+
+function showMain() {
+    const gate = document.getElementById("auth-gate");
+    const main = document.getElementById("main-wrap");
+    if (gate) gate.classList.add("hidden");
+    if (main) main.style.display = "";
+}
+
+async function initAuth() {
+    const saved = localStorage.getItem("alogs_auth");
+    if (saved === AUTH_PASSWORD_HASH) {
+        showMain();
+        return true;
+    }
+
+    const gate = document.getElementById("auth-gate");
+    const input = document.getElementById("auth-input");
+    const btn = document.getElementById("auth-btn");
+    const err = document.getElementById("auth-error");
+    if (!gate || !input || !btn) return false;
+
+    if (gate) gate.classList.remove("hidden");
+
+    function tryLogin() {
+        const val = input.value;
+        if (!val) return;
+        checkPassword(val).then(function (ok) {
+            if (ok) {
+                localStorage.setItem("alogs_auth", AUTH_PASSWORD_HASH);
+                showMain();
+                bootData();
+            } else {
+                err.textContent = "Неверный пароль";
+                input.value = "";
+                input.focus();
+            }
+        });
+    }
+
+    btn.addEventListener("click", tryLogin);
+    input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") tryLogin();
+    });
+    input.focus();
+
+    return false;
+}
+
 const REFRESH_MS = 5000;
 const PER_PAGE = 50;
 const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
@@ -455,5 +517,13 @@ if (dateToday) {
   });
 }
 
-refresh();
-setInterval(refresh, REFRESH_MS);
+let dataInterval = null;
+function bootData() {
+    if (dataInterval) return;
+    refresh();
+    dataInterval = setInterval(refresh, REFRESH_MS);
+}
+
+initAuth().then(function (loggedIn) {
+    if (loggedIn) bootData();
+});
