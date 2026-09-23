@@ -9,7 +9,17 @@
 </head>
 <body>
 
-<main class="wrap">
+<div id="auth-gate" class="auth-gate">
+    <div class="auth-card">
+        <div class="auth-title">ALogs</div>
+        <div class="auth-subtitle">Введите пароль для доступа</div>
+        <input type="password" id="auth-input" placeholder="Пароль" autocomplete="off">
+        <button id="auth-btn">ВОЙТИ</button>
+        <div id="auth-error" class="auth-error"></div>
+    </div>
+</div>
+
+<main class="wrap" id="main-wrap" style="display:none;">
 
     <header class="top">
         <div>
@@ -54,6 +64,6 @@
 
 </main>
 
-<script src="app.js?v=16"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
