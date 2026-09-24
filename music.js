@@ -19,19 +19,20 @@
             return;
         }
         container.innerHTML = tracks.map(function (t) {
-            return '<div class="track">' +
+            const url = t.id ? 'https://music.yandex.ru/track/' + t.id : '#';
+            return '<a class="track" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' +
                 (t.cover ? '<img class="track-cover" src="' + escapeHtml(t.cover) + '" alt="" loading="lazy">' : '<div class="track-cover"></div>') +
                 '<div class="track-info">' +
                     '<div class="track-title">' + escapeHtml(t.title) + '</div>' +
                     '<div class="track-artist">' + escapeHtml((t.artists || []).join(', ')) + '</div>' +
                 '</div>' +
-                '<button class="track-like" aria-label="В избранное">' +
-                    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                        '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' +
+                '<span class="track-play">' +
+                    '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">' +
+                        '<path d="M8 5v14l11-7z"/>' +
                     '</svg>' +
-                '</button>' +
+                '</span>' +
                 '<div class="track-duration">' + escapeHtml(t.duration) + '</div>' +
-            '</div>';
+            '</a>';
         }).join('');
     }
 
@@ -43,11 +44,12 @@
             return;
         }
         container.innerHTML = albums.map(function (a) {
-            return '<div class="album">' +
+            const url = a.id ? 'https://music.yandex.ru/album/' + a.id : '#';
+            return '<a class="album" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' +
                 (a.cover ? '<img class="album-cover" src="' + escapeHtml(a.cover) + '" alt="" loading="lazy">' : '<div class="album-cover"></div>') +
                 '<div class="album-title">' + escapeHtml(a.title) + '</div>' +
                 '<div class="album-year">' + escapeHtml(a.year) + '</div>' +
-            '</div>';
+            '</a>';
         }).join('');
     }
 
