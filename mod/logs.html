@@ -76,10 +76,16 @@
         <h3>Правила EnvyWorld</h3>
         <button id="rules-close" class="rules-close" aria-label="Закрыть">&times;</button>
     </div>
-    <div class="rules-server-select">
-        <select id="rules-server"></select>
+    <div class="rules-selects">
+        <div class="rules-select-row">
+            <label class="rules-label">Сервер</label>
+            <select id="rules-server"></select>
+        </div>
+        <div class="rules-select-row">
+            <label class="rules-label">Раздел</label>
+            <select id="rules-section"></select>
+        </div>
     </div>
-    <nav class="rules-tabs" id="rules-tabs"></nav>
     <div class="rules-content" id="rules-content">
         <div class="rules-loading">Загрузка правил...</div>
     </div>
