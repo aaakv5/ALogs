@@ -31,10 +31,10 @@
         const toggleBtn = document.getElementById('rules-toggle');
         const closeBtn = document.getElementById('rules-close');
         const serverSelect = document.getElementById('rules-server');
-        const tabsContainer = document.getElementById('rules-tabs');
+        const sectionSelect = document.getElementById('rules-section');
         const content = document.getElementById('rules-content');
 
-        if (!panel || !toggleBtn) return;
+        if (!panel || !toggleBtn || !serverSelect || !sectionSelect) return;
 
         function openPanel() {
             panel.classList.add('open');
@@ -55,9 +55,19 @@
             if (e.key === 'Escape') closePanel();
         });
 
+        serverSelect.addEventListener('change', function () {
+            currentServer = serverSelect.value;
+            loadRules(content);
+        });
+
+        sectionSelect.addEventListener('change', function () {
+            currentSection = sectionSelect.value;
+            loadRules(content);
+        });
+
         async function loadInitialData() {
             if (cache.sections && cache.servers) {
-                renderTabs(tabsContainer);
+                renderSectionSelect(sectionSelect);
                 renderServerSelect(serverSelect);
                 loadRules(content);
                 return;
@@ -73,7 +83,15 @@
                 cache.sections = data.items || [];
                 cache.servers = data.servers || [];
 
-                renderTabs(tabsContainer);
+                if (!cache.servers.length) {
+                    cache.servers = [{ id: 'all', label: 'Все серверы' }];
+                }
+
+                if (cache.sections.length) {
+                    currentSection = cache.sections[0].id;
+                }
+
+                renderSectionSelect(sectionSelect);
                 renderServerSelect(serverSelect);
                 loadRules(content);
             } catch (err) {
@@ -81,20 +99,12 @@
             }
         }
 
-        function renderTabs(container) {
-            container.innerHTML = (cache.sections || []).map(function (s) {
-                return '<button class="rules-tab ' + (s.id === currentSection ? 'active' : '') + '" data-section="' + escapeHtml(s.id) + '">' +
+        function renderSectionSelect(select) {
+            select.innerHTML = (cache.sections || []).map(function (s) {
+                return '<option value="' + escapeHtml(s.id) + '"' + (s.id === currentSection ? ' selected' : '') + '>' +
                     escapeHtml(s.label) +
-                    '</button>';
+                    '</option>';
             }).join('');
-
-            container.querySelectorAll('.rules-tab').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    currentSection = btn.dataset.section;
-                    renderTabs(container);
-                    loadRules(content);
-                });
-            });
         }
 
         function renderServerSelect(select) {
@@ -103,11 +113,6 @@
                     escapeHtml(s.label) +
                     '</option>';
             }).join('');
-
-            select.addEventListener('change', function () {
-                currentServer = select.value;
-                loadRules(content);
-            });
         }
 
         async function loadRules(container) {
