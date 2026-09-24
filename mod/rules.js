@@ -5,12 +5,11 @@
 
     const cache = {
         sections: null,
-        servers: null,
         rules: {}
     };
 
     let currentSection = 'global';
-    let currentServer = 'all';
+    const currentServer = 'all';
     let initialized = false;
 
     function escapeHtml(str) {
@@ -30,11 +29,10 @@
         const panel = document.getElementById('rules-panel');
         const toggleBtn = document.getElementById('rules-toggle');
         const closeBtn = document.getElementById('rules-close');
-        const serverSelect = document.getElementById('rules-server');
         const sectionSelect = document.getElementById('rules-section');
         const content = document.getElementById('rules-content');
 
-        if (!panel || !toggleBtn || !serverSelect || !sectionSelect) return;
+        if (!panel || !toggleBtn || !sectionSelect) return;
 
         function openPanel() {
             panel.classList.add('open');
@@ -55,20 +53,14 @@
             if (e.key === 'Escape') closePanel();
         });
 
-        serverSelect.addEventListener('change', function () {
-            currentServer = serverSelect.value;
-            loadRules(content);
-        });
-
         sectionSelect.addEventListener('change', function () {
             currentSection = sectionSelect.value;
             loadRules(content);
         });
 
         async function loadInitialData() {
-            if (cache.sections && cache.servers) {
+            if (cache.sections) {
                 renderSectionSelect(sectionSelect);
-                renderServerSelect(serverSelect);
                 loadRules(content);
                 return;
             }
@@ -81,18 +73,12 @@
                 const data = await res.json();
 
                 cache.sections = data.items || [];
-                cache.servers = data.servers || [];
-
-                if (!cache.servers.length) {
-                    cache.servers = [{ id: 'all', label: 'Все серверы' }];
-                }
 
                 if (cache.sections.length) {
                     currentSection = cache.sections[0].id;
                 }
 
                 renderSectionSelect(sectionSelect);
-                renderServerSelect(serverSelect);
                 loadRules(content);
             } catch (err) {
                 content.innerHTML = '<div class="rules-empty">Не удалось загрузить правила: ' + escapeHtml(err.message) + '</div>';
@@ -102,14 +88,6 @@
         function renderSectionSelect(select) {
             select.innerHTML = (cache.sections || []).map(function (s) {
                 return '<option value="' + escapeHtml(s.id) + '"' + (s.id === currentSection ? ' selected' : '') + '>' +
-                    escapeHtml(s.label) +
-                    '</option>';
-            }).join('');
-        }
-
-        function renderServerSelect(select) {
-            select.innerHTML = (cache.servers || []).map(function (s) {
-                return '<option value="' + escapeHtml(s.id) + '"' + (s.id === currentServer ? ' selected' : '') + '>' +
                     escapeHtml(s.label) +
                     '</option>';
             }).join('');
