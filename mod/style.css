@@ -351,9 +351,10 @@ body {
 
 .controls {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 320px minmax(0, 1fr) auto;
     gap: 12px;
     margin-bottom: 16px;
+    align-items: center;
 }
 
 .search-box {
@@ -398,10 +399,12 @@ body {
 .date-box {
     display: flex;
     gap: 8px;
+    justify-self: end;
+    align-items: center;
 }
 
 .date-box input[type="date"] {
-    flex: 1;
+    width: 150px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -667,6 +670,7 @@ body {
     height: 38px;
     box-sizing: border-box;
     cursor: pointer;
+    width: 130px;
     min-width: 130px;
 }
 
