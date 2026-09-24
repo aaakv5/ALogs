@@ -35,5 +35,6 @@ jobs:
             echo "Нет изменений"
           else
             git commit -m "Update music data"
+            git pull --rebase origin main
             git push
           fi
