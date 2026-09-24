@@ -268,7 +268,7 @@ body {
 
 .search-box {
     position: relative;
-    margin-bottom: 16px;
+    width: 260px;
 }
 
 .search-box input {
@@ -279,8 +279,10 @@ body {
     color: var(--text);
     font-family: var(--mono);
     font-size: 13px;
-    padding: 12px 42px 12px 16px;
+    padding: 8px 36px 8px 14px;
     outline: none;
+    height: 38px;
+    box-sizing: border-box;
     transition: border-color 0.15s;
 }
 
@@ -350,12 +352,13 @@ body {
 }
 
 .controls {
-    display: grid;
-    grid-template-columns: 320px minmax(0, 1fr) auto;
-    gap: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-bottom: 16px;
     align-items: center;
 }
+
 
 .search-box {
     position: relative;
@@ -399,7 +402,6 @@ body {
 .date-box {
     display: flex;
     gap: 8px;
-    justify-self: end;
     align-items: center;
 }
 
@@ -670,7 +672,6 @@ body {
     height: 38px;
     box-sizing: border-box;
     cursor: pointer;
-    width: 130px;
     min-width: 130px;
 }
 
