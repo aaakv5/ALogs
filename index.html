@@ -1,1 +1,52 @@
-Ку
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>akv5 — музыка</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="music.css?v=1">
+</head>
+<body>
+
+<div class="container">
+
+    <header class="artist-header">
+        <div class="artist-avatar">
+            <img id="artist-avatar" src="" alt="akv5">
+        </div>
+        <div class="artist-meta">
+            <div class="artist-label">Исполнитель</div>
+            <h1 class="artist-name" id="artist-name">akv5</h1>
+            <div class="artist-listeners">
+                <span class="dot-live"></span>
+                <span id="artist-listeners">Загрузка...</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="section-head">
+            <h2>Популярные треки</h2>
+            <svg class="section-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+        <div class="tracks" id="tracks">
+            <div class="loading">Загрузка треков...</div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-head">
+            <h2>Альбомы</h2>
+            <svg class="section-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+        <div class="albums" id="albums">
+            <div class="loading">Загрузка альбомов...</div>
+        </div>
+    </section>
+
+</div>
+
+<script src="music.js?v=1"></script>
+</body>
+</html>
