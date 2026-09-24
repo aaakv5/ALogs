@@ -4,6 +4,26 @@ import sys
 from yandex_music import Client
 
 ARTIST_ID = '23775880'
+TRACKS_LIMIT = 10
+
+
+def get_listeners(artist):
+    for attr in ('monthly_listeners', 'listeners', 'monthly_listeners_count'):
+        v = getattr(artist, attr, None)
+        if isinstance(v, int) and v > 0:
+            return v
+    stats = getattr(artist, 'stats', None)
+    if stats:
+        for attr in ('monthly_listeners', 'listeners', 'last_month_listeners'):
+            v = getattr(stats, attr, None)
+            if isinstance(v, int) and v > 0:
+                return v
+    counts = getattr(artist, 'counts', None)
+    if counts:
+        v = getattr(counts, 'monthly_listeners', None)
+        if isinstance(v, int) and v > 0:
+            return v
+    return 0
 
 
 def fetch_and_save():
@@ -22,6 +42,10 @@ def fetch_and_save():
     print(f"Использую прокси: {proxy}")
 
     artist = client.artists(ARTIST_ID)[0]
+    print(f"Артист: {artist.name}")
+
+    listeners = get_listeners(artist)
+    print(f"Слушателей в месяц: {listeners}")
 
     # --- Треки ---
     tracks_raw = []
@@ -32,25 +56,27 @@ def fetch_and_save():
                 print(f"Треки получены через client.{method_name}")
                 break
             except Exception as e:
-                print(f"client.{method_name} не сработал: {e}")
+                print(f"client.{method_name}: {e}")
 
     if not tracks_raw:
         try:
             tracks_raw = artist.get_tracks()
-            print("Треки получены через artist.get_tracks()")
+            print("Треки через artist.get_tracks()")
         except Exception as e:
-            print(f"artist.get_tracks() не сработал: {e}")
+            print(f"artist.get_tracks(): {e}")
 
-    # Некоторые версии возвращают объект с .tracks
     if hasattr(tracks_raw, 'tracks'):
         tracks_raw = tracks_raw.tracks
 
     tracks = []
     for t in tracks_raw or []:
+        if len(tracks) >= TRACKS_LIMIT:
+            break
         cover = None
         if t.cover_uri:
             cover = "https://" + t.cover_uri.replace('%%', '400x400')
         tracks.append({
+            'id': str(t.id) if t.id else '',
             'title': t.title,
             'artists': [a.name for a in t.artists] if t.artists else [],
             'duration': f"{t.duration_ms // 60000}:{(t.duration_ms // 1000) % 60:02d}",
@@ -66,16 +92,15 @@ def fetch_and_save():
                 print(f"Альбомы получены через client.{method_name}")
                 break
             except Exception as e:
-                print(f"client.{method_name} не сработал: {e}")
+                print(f"client.{method_name}: {e}")
 
     if not albums_raw:
         try:
             albums_raw = artist.get_albums()
-            print("Альбомы получены через artist.get_albums()")
+            print("Альбомы через artist.get_albums()")
         except Exception as e:
-            print(f"artist.get_albums() не сработал: {e}")
+            print(f"artist.get_albums(): {e}")
 
-    # Некоторые версии возвращают объект с .albums
     if hasattr(albums_raw, 'albums'):
         albums_raw = albums_raw.albums
 
@@ -85,18 +110,15 @@ def fetch_and_save():
         if a.cover_uri:
             cover = "https://" + a.cover_uri.replace('%%', '400x400')
         albums.append({
+            'id': str(a.id) if a.id else '',
             'title': a.title,
             'year': a.year,
             'cover': cover,
         })
 
-    # --- Аватарка ---
     avatar = None
     if artist.cover and artist.cover.uri:
         avatar = "https://" + artist.cover.uri.replace('%%', '400x400')
-
-    # --- Слушатели ---
-    listeners = getattr(artist, 'monthly_listeners', None) or 0
 
     data = {
         'name': artist.name,
@@ -109,7 +131,7 @@ def fetch_and_save():
     with open('music-data.json', 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print(f"Готово: music-data.json (треков: {len(tracks)}, альбомов: {len(albums)})")
+    print(f"Готово: треков {len(tracks)}, альбомов {len(albums)}, слушателей {listeners}")
 
 
 if __name__ == '__main__':
