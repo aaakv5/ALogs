@@ -14,13 +14,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: pip3 install --user yandex-music
+      - name: Set up venv and install dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install yandex-music
 
       - name: Fetch music data
         env:
           YANDEX_MUSIC_TOKEN: ${{ secrets.YANDEX_MUSIC_TOKEN }}
-        run: python3 scripts/fetch_music.py
+        run: .venv/bin/python scripts/fetch_music.py
 
       - name: Commit and push
         run: |
