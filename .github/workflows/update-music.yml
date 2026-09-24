@@ -2,7 +2,7 @@ name: Update music data
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -14,18 +14,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Install dependencies
-        run: pip install yandex-music
+        run: pip3 install --user yandex-music
 
       - name: Fetch music data
         env:
           YANDEX_MUSIC_TOKEN: ${{ secrets.YANDEX_MUSIC_TOKEN }}
-        run: python scripts/fetch_music.py
+        run: python3 scripts/fetch_music.py
 
       - name: Commit and push
         run: |
