@@ -23,6 +23,7 @@ jobs:
       - name: Fetch music data
         env:
           YANDEX_MUSIC_TOKEN: ${{ secrets.YANDEX_MUSIC_TOKEN }}
+          YANDEX_MUSIC_PROXY: "http://127.0.0.1:8888"
         run: .venv/bin/python scripts/fetch_music.py
 
       - name: Commit and push
