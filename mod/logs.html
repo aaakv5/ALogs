@@ -62,8 +62,36 @@
         </div>
         <div class="feed-pagination" id="feed-pagination"></div>
     </section>
-
 </main>
+
+    <!-- Кнопка открытия панели правил -->
+<button id="rules-toggle" class="rules-toggle" aria-label="Открыть правила">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+    </svg>
+</button>
+
+<!-- Панель правил -->
+<aside id="rules-panel" class="rules-panel">
+    <div class="rules-header">
+        <h3>Правила EnvyWorld</h3>
+        <button id="rules-close" class="rules-close" aria-label="Закрыть">&times;</button>
+    </div>
+
+    <!-- Выбор сервера -->
+    <div class="rules-server-select">
+        <select id="rules-server"></select>
+    </div>
+
+    <!-- Список разделов -->
+    <nav class="rules-tabs" id="rules-tabs"></nav>
+
+    <!-- Контент правил -->
+    <div class="rules-content" id="rules-content">
+        <div class="rules-loading">Загрузка правил...</div>
+    </div>
+ </aside>
 
 <script src="app.js?v=23"></script>
 </body>
