@@ -12,7 +12,14 @@ def fetch_and_save():
         print("Ошибка: не задан YANDEX_MUSIC_TOKEN")
         sys.exit(1)
 
+    proxy = os.environ.get('YANDEX_MUSIC_PROXY')
+    if not proxy:
+        print("Ошибка: не задан YANDEX_MUSIC_PROXY")
+        sys.exit(1)
+
     client = Client(token).init()
+    client.request.proxies = {'http': proxy, 'https': proxy}
+    print(f"Использую прокси: {proxy}")
 
     artist = client.artists(ARTIST_ID)[0]
 
