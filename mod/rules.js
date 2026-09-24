@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const API_BASE = 'https://api.envyworld.gg/api/v1';
+    const API_BASE = 'https://logs.arcanomc.pw';
 
     const cache = {
         sections: null,
@@ -64,7 +64,9 @@
             }
             try {
                 content.innerHTML = '<div class="rules-loading">Загрузка...</div>';
-                const res = await fetch(API_BASE + '/public/rules');
+                const res = await fetch(API_BASE + '/rules', {
+                    headers: { "Authorization": "Bearer " + (localStorage.getItem("alogs_token") || "") }
+                });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
 
@@ -118,8 +120,9 @@
             container.innerHTML = '<div class="rules-loading">Загрузка...</div>';
             try {
                 const res = await fetch(
-                    API_BASE + '/public/rules/' + encodeURIComponent(currentSection) +
-                    '?server=' + encodeURIComponent(currentServer)
+                    API_BASE + '/rules/' + encodeURIComponent(currentSection) +
+                    '?server=' + encodeURIComponent(currentServer),
+                    { headers: { "Authorization": "Bearer " + (localStorage.getItem("alogs_token") || "") } }
                 );
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
