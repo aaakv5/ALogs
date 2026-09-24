@@ -7,22 +7,53 @@ ARTIST_ID = '23775880'
 TRACKS_LIMIT = 5
 
 
-def get_listeners(artist):
-    for attr in ('monthly_listeners', 'listeners', 'monthly_listeners_count'):
-        v = getattr(artist, attr, None)
-        if isinstance(v, int) and v > 0:
-            return v
+def _to_int(v):
+    if v is None or isinstance(v, bool):
+        return None
+    if isinstance(v, int):
+        return v if v > 0 else None
+    if isinstance(v, float):
+        return int(v) if v > 0 else None
+    if isinstance(v, str):
+        try:
+            n = int(v.replace(' ', '').replace(',', ''))
+            return n if n > 0 else None
+        except ValueError:
+            return None
+    return None
+
+
+def get_listeners(artist, client=None):
+    for attr in ('monthly_listeners', 'listeners', 'monthly_listeners_count', 'month_listeners'):
+        n = _to_int(getattr(artist, attr, None))
+        if n:
+            return n
+
     stats = getattr(artist, 'stats', None)
     if stats:
-        for attr in ('monthly_listeners', 'listeners', 'last_month_listeners'):
-            v = getattr(stats, attr, None)
-            if isinstance(v, int) and v > 0:
-                return v
+        for attr in ('monthly_listeners', 'listeners', 'last_month_listeners', 'month_listeners'):
+            n = _to_int(getattr(stats, attr, None))
+            if n:
+                return n
+
     counts = getattr(artist, 'counts', None)
     if counts:
-        v = getattr(counts, 'monthly_listeners', None)
-        if isinstance(v, int) and v > 0:
-            return v
+        for attr in ('monthly_listeners', 'listeners', 'month_listeners'):
+            n = _to_int(getattr(counts, attr, None))
+            if n:
+                return n
+
+    if client and hasattr(client, 'artists_stats'):
+        try:
+            res = client.artists_stats(ARTIST_ID)
+            if res:
+                for attr in ('monthly_listeners', 'listeners'):
+                    n = _to_int(getattr(res, attr, None))
+                    if n:
+                        return n
+        except Exception:
+            pass
+
     return 0
 
 
@@ -39,32 +70,43 @@ def fetch_and_save():
 
     client = Client(token).init()
     client.request.proxies = {'http': proxy, 'https': proxy}
-    print(f"Использую прокси: {proxy}")
 
     artist = client.artists(ARTIST_ID)[0]
-    print(f"Артист: {artist.name}")
 
-    listeners = get_listeners(artist)
+    # --- Краткая диагностика по слушателям ---
+    print(f"Артист: {artist.name}")
+    for attr in dir(artist):
+        low = attr.lower()
+        if attr.startswith('_'):
+            continue
+        if 'listen' not in low and 'month' not in low and 'stat' not in low and 'count' not in low:
+            continue
+        try:
+            v = getattr(artist, attr)
+            if not callable(v):
+                print(f"  artist.{attr} = {v!r}")
+        except Exception:
+            pass
+
+    stats = getattr(artist, 'stats', None)
+    if stats:
+        for attr in dir(stats):
+            if attr.startswith('_'):
+                continue
+            if 'listen' not in attr.lower() and 'month' not in attr.lower():
+                continue
+            try:
+                v = getattr(stats, attr)
+                if not callable(v):
+                    print(f"  stats.{attr} = {v!r}")
+            except Exception:
+                pass
+
+    listeners = get_listeners(artist, client)
     print(f"Слушателей в месяц: {listeners}")
 
     # --- Треки ---
-    tracks_raw = []
-    for method_name in ('artists_tracks', 'artists_tracks_direct'):
-        if hasattr(client, method_name):
-            try:
-                tracks_raw = getattr(client, method_name)(ARTIST_ID)
-                print(f"Треки получены через client.{method_name}")
-                break
-            except Exception as e:
-                print(f"client.{method_name}: {e}")
-
-    if not tracks_raw:
-        try:
-            tracks_raw = artist.get_tracks()
-            print("Треки через artist.get_tracks()")
-        except Exception as e:
-            print(f"artist.get_tracks(): {e}")
-
+    tracks_raw = client.artists_tracks(ARTIST_ID)
     if hasattr(tracks_raw, 'tracks'):
         tracks_raw = tracks_raw.tracks
 
@@ -72,11 +114,20 @@ def fetch_and_save():
     for t in tracks_raw or []:
         if len(tracks) >= TRACKS_LIMIT:
             break
+
+        tid = None
+        for attr in ('id', 'track_id', 'real_id'):
+            v = getattr(t, attr, None)
+            if v:
+                tid = str(v)
+                break
+
         cover = None
         if t.cover_uri:
             cover = "https://" + t.cover_uri.replace('%%', '400x400')
+
         tracks.append({
-            'id': str(t.id) if t.id else '',
+            'id': tid or '',
             'title': t.title,
             'artists': [a.name for a in t.artists] if t.artists else [],
             'duration': f"{t.duration_ms // 60000}:{(t.duration_ms // 1000) % 60:02d}",
@@ -84,33 +135,33 @@ def fetch_and_save():
         })
 
     # --- Альбомы ---
-    albums_raw = []
+    albums_raw = None
     for method_name in ('artists_direct_albums', 'artists_albums'):
         if hasattr(client, method_name):
             try:
                 albums_raw = getattr(client, method_name)(ARTIST_ID)
-                print(f"Альбомы получены через client.{method_name}")
                 break
-            except Exception as e:
-                print(f"client.{method_name}: {e}")
-
-    if not albums_raw:
-        try:
-            albums_raw = artist.get_albums()
-            print("Альбомы через artist.get_albums()")
-        except Exception as e:
-            print(f"artist.get_albums(): {e}")
+            except Exception:
+                continue
 
     if hasattr(albums_raw, 'albums'):
         albums_raw = albums_raw.albums
 
     albums = []
     for a in albums_raw or []:
+        aid = None
+        for attr in ('id', 'album_id', 'real_id'):
+            v = getattr(a, attr, None)
+            if v:
+                aid = str(v)
+                break
+
         cover = None
         if a.cover_uri:
             cover = "https://" + a.cover_uri.replace('%%', '400x400')
+
         albums.append({
-            'id': str(a.id) if a.id else '',
+            'id': aid or '',
             'title': a.title,
             'year': a.year,
             'cover': cover,
