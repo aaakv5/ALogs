@@ -4,6 +4,7 @@
   "avatar": "https://avatars.yandex.net/get-music-content/20622967/193ed25e.p.23775880/400x400",
   "tracks": [
     {
+      "id": "154277045",
       "title": "Бомжиха",
       "artists": [
         "akv5",
@@ -13,6 +14,7 @@
       "cover": "https://avatars.yandex.net/get-music-content/19035207/f786e23f.a.43321925-1/400x400"
     },
     {
+      "id": "144725144",
       "title": "Баны",
       "artists": [
         "akv5"
@@ -21,6 +23,7 @@
       "cover": "https://avatars.yandex.net/get-music-content/15682289/4cfd1e96.a.38989209-1/400x400"
     },
     {
+      "id": "136098140",
       "title": "Нектар (Speed Up)",
       "artists": [
         "akv5"
@@ -29,6 +32,7 @@
       "cover": "https://avatars.yandex.net/get-music-content/14183125/a4ec6e8c.a.35389278-1/400x400"
     },
     {
+      "id": "147594764",
       "title": "Пары",
       "artists": [
         "akv5",
@@ -38,6 +42,7 @@
       "cover": "https://avatars.yandex.net/get-music-content/17699177/a5675fe8.a.40388196-1/400x400"
     },
     {
+      "id": "136098141",
       "title": "Воспоминания",
       "artists": [
         "akv5"
@@ -46,6 +51,7 @@
       "cover": "https://avatars.yandex.net/get-music-content/14183125/a4ec6e8c.a.35389278-1/400x400"
     },
     {
+      "id": "136098142",
       "title": "Боюсь",
       "artists": [
         "akv5"
@@ -54,6 +60,7 @@
       "cover": "https://avatars.yandex.net/get-music-content/14183125/a4ec6e8c.a.35389278-1/400x400"
     },
     {
+      "id": "136098143",
       "title": "Shiza",
       "artists": [
         "akv5"
@@ -62,6 +69,7 @@
       "cover": "https://avatars.yandex.net/get-music-content/14183125/a4ec6e8c.a.35389278-1/400x400"
     },
     {
+      "id": "136098138",
       "title": "Intro",
       "artists": [
         "akv5"
@@ -70,6 +78,7 @@
       "cover": "https://avatars.yandex.net/get-music-content/14183125/a4ec6e8c.a.35389278-1/400x400"
     },
     {
+      "id": "136098139",
       "title": "Высказывания (Speed Up)",
       "artists": [
         "akv5"
@@ -78,131 +87,60 @@
       "cover": "https://avatars.yandex.net/get-music-content/14183125/a4ec6e8c.a.35389278-1/400x400"
     },
     {
+      "id": "138307155",
       "title": "Любил",
       "artists": [
         "akv5"
       ],
       "duration": "2:10",
       "cover": "https://avatars.yandex.net/get-music-content/15401259/72cae011.a.36269038-1/400x400"
-    },
-    {
-      "title": "Фишинг",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "1:49",
-      "cover": "https://avatars.yandex.net/get-music-content/17649213/ddb4dbb2.a.42784815-1/400x400"
-    },
-    {
-      "title": "н0ль 5ять",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "1:15",
-      "cover": "https://avatars.yandex.net/get-music-content/16496077/b89dbd8e.a.41320526-1/400x400"
-    },
-    {
-      "title": "Пизди",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "1:40",
-      "cover": "https://avatars.yandex.net/get-music-content/17649213/ddb4dbb2.a.42784815-1/400x400"
-    },
-    {
-      "title": "Стайл",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "1:17",
-      "cover": "https://avatars.yandex.net/get-music-content/17649213/ddb4dbb2.a.42784815-1/400x400"
-    },
-    {
-      "title": "09.08.2024",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "0:32",
-      "cover": "https://avatars.yandex.net/get-music-content/15682289/4cfd1e96.a.38989209-1/400x400"
-    },
-    {
-      "title": "Девочка эмо",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "1:25",
-      "cover": "https://avatars.yandex.net/get-music-content/17649213/ddb4dbb2.a.42784815-1/400x400"
-    },
-    {
-      "title": "Alone",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "2:17",
-      "cover": "https://avatars.yandex.net/get-music-content/15682289/4cfd1e96.a.38989209-1/400x400"
-    },
-    {
-      "title": "Рыбалка",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "1:49",
-      "cover": "https://avatars.yandex.net/get-music-content/16485602/ecc49f1a.a.39480668-1/400x400"
-    },
-    {
-      "title": "Хороший",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "2:22",
-      "cover": "https://avatars.yandex.net/get-music-content/15682289/4cfd1e96.a.38989209-1/400x400"
-    },
-    {
-      "title": "Пугает",
-      "artists": [
-        "akv5"
-      ],
-      "duration": "1:52",
-      "cover": "https://avatars.yandex.net/get-music-content/15682289/4cfd1e96.a.38989209-1/400x400"
     }
   ],
   "albums": [
     {
+      "id": "43321925",
       "title": "Бомжиха",
       "year": 2026,
       "cover": "https://avatars.yandex.net/get-music-content/19035207/f786e23f.a.43321925-1/400x400"
     },
     {
+      "id": "42784815",
       "title": "ДРОП 05",
       "year": 2026,
       "cover": "https://avatars.yandex.net/get-music-content/17649213/ddb4dbb2.a.42784815-1/400x400"
     },
     {
+      "id": "41320526",
       "title": "н0ль 5ять",
       "year": 2026,
       "cover": "https://avatars.yandex.net/get-music-content/16496077/b89dbd8e.a.41320526-1/400x400"
     },
     {
+      "id": "40388196",
       "title": "Пары",
       "year": 2026,
       "cover": "https://avatars.yandex.net/get-music-content/17699177/a5675fe8.a.40388196-1/400x400"
     },
     {
+      "id": "39480668",
       "title": "Рыбалка",
       "year": 2025,
       "cover": "https://avatars.yandex.net/get-music-content/16485602/ecc49f1a.a.39480668-1/400x400"
     },
     {
+      "id": "38989209",
       "title": "Состояние души",
       "year": 2025,
       "cover": "https://avatars.yandex.net/get-music-content/15682289/4cfd1e96.a.38989209-1/400x400"
     },
     {
+      "id": "36269038",
       "title": "Любил",
       "year": 2025,
       "cover": "https://avatars.yandex.net/get-music-content/15401259/72cae011.a.36269038-1/400x400"
     },
     {
+      "id": "35389278",
       "title": "History Of Akv5",
       "year": 2025,
       "cover": "https://avatars.yandex.net/get-music-content/14183125/a4ec6e8c.a.35389278-1/400x400"
