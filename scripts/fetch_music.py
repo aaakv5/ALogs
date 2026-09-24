@@ -4,7 +4,7 @@ import sys
 from yandex_music import Client
 
 ARTIST_ID = '23775880'
-TRACKS_LIMIT = 10
+TRACKS_LIMIT = 5
 
 
 def get_listeners(artist):
