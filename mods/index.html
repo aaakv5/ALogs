@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>akv5 | Моды</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #13161b;
+    --bg-card: #1a1d23;
+    --bg-inset: #0f1216;
+    --bg-hover: #21252d;
+    --border: #262a33;
+    --border-soft: #2f343f;
+    --text: #e6e8eb;
+    --text-muted: #8b92a0;
+    --text-dim: #5a6070;
+    --accent: #ff3b4e;
+    --accent-hover: #ff5568;
+    --accent-soft: rgba(255, 59, 78, 0.12);
+    --accent-border: rgba(255, 59, 78, 0.35);
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --mono: 'JetBrains Mono', monospace;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 32px 24px;
+    background-attachment: fixed;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 26px;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .top-label {
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .top-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .pill-green {
+    color: var(--green);
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.28);
+  }
+  .pill-green .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ===== Карточки-секции ===== */
+  .section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+    cursor: pointer;
+    user-select: none;
+  }
+  .section-head-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    color: var(--text);
+  }
+  .section-count {
+    background: var(--bg-inset);
+    border-radius: 8px;
+    padding: 1px 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+  .section-toggle {
+    color: var(--text-dim);
+    font-size: 18px;
+    transition: transform 0.2s;
+    line-height: 1;
+  }
+  .section.collapsed .section-toggle { transform: rotate(-90deg); }
+  .section.collapsed .section-body { display: none; }
+
+  .section-body {
+    padding: 8px 0;
+    background: var(--bg);
+  }
+
+  /* ===== Список модов ===== */
+  .mod-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    transition: background 0.12s;
+  }
+  .mod-item:last-child { border-bottom: none; }
+  .mod-item:hover { background: var(--bg-hover); }
+
+  .mod-name {
+    color: var(--text);
+    font-weight: 500;
+    word-break: break-word;
+  }
+  .mod-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+  .mod-author {
+    font-size: 10.5px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+  .mod-delete {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: var(--red);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+    display: none; /* показываем только админу */
+  }
+  .mod-delete:hover {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: var(--red);
+  }
+  .mod-item.empty {
+    color: var(--text-dim);
+    font-style: italic;
+    justify-content: center;
+    padding: 24px;
+    font-family: inherit;
+  }
+
+  /* ===== Форма добавления ===== */
+  .add-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 22px;
+  }
+  .add-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .add-title::before {
+    content: '';
+    width: 3px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 200px auto;
+    gap: 10px;
+    align-items: end;
+  }
+  @media (max-width: 800px) {
+    .form-row { grid-template-columns: 1fr; }
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group label {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .form-group select,
+  .form-group input {
+    width: 100%;
+    height: 40px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 0 12px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .form-group select:hover,
+  .form-group input:hover { background: var(--bg-hover); }
+  .form-group select:focus,
+  .form-group input:focus { border-color: var(--accent); }
+  .form-group input::placeholder { color: var(--text-dim); }
+
+  .btn-add {
+    height: 40px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .btn-add:hover { background: var(--accent-hover); }
+  .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .form-msg {
+    margin-top: 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    min-height: 16px;
+  }
+  .form-msg.ok { color: var(--green); }
+  .form-msg.err { color: var(--red); }
+
+  /* ===== Блок статуса авторизации ===== */
+  .auth-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 18px;
+    font-size: 12px;
+    font-family: var(--mono);
+    flex-wrap: wrap;
+  }
+  .auth-bar .who {
+    color: var(--text-muted);
+  }
+  .auth-bar .who b { color: var(--text); }
+  .auth-bar input {
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 10px;
+    outline: none;
+    width: 160px;
+  }
+  .auth-bar input:focus { border-color: var(--accent); }
+  .auth-bar .btn-sm {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .auth-bar .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+  .admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 59, 78, 0.1);
+    border: 1px solid var(--accent-border);
+    color: var(--accent);
+    border-radius: 100px;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== Поиск ===== */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 18px;
+  }
+  .search-wrap input {
+    width: 100%;
+    height: 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 0 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--text-dim); }
+
+  /* ===== Скроллбар ===== */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3f4a; }
+
+  @media (max-width: 600px) {
+    body { padding: 20px 14px; }
+    .top-title { font-size: 18px; }
+    .mod-item { padding: 10px 16px; flex-direction: column; align-items: flex-start; gap: 6px; }
+    .mod-meta { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Шапка -->
+  <header class="top">
+    <div>
+      <div class="top-label">ALogs · EnvyWorld</div>
+      <h1 class="top-title">Запрещённое ПО и модификации</h1>
+    </div>
+    <span class="pill pill-green">
+      <span class="dot"></span> LIVE
+    </span>
+  </header>
+
+  <!-- Панель авторизации -->
+  <div class="auth-bar" id="authBar">
+    <span class="who" id="authWho">Вы не авторизованы как модератор</span>
+    <input type="text" id="moderInput" placeholder="Ник модератора" list="moderList" autocomplete="off">
+    <datalist id="moderList"></datalist>
+    <button class="btn-sm" id="btnAuth">Войти</button>
+    <button class="btn-sm" id="btnLogout" style="display:none;">Выйти</button>
+  </div>
+
+  <!-- Поиск -->
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Поиск по названию мода..." autocomplete="off">
+  </div>
+
+  <!-- Форма добавления -->
+  <div class="add-card" id="addCard" style="display:none;">
+    <div class="add-title">Добавить запрещённый мод</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Раздел</label>
+        <select id="formSection">
+          <option value="software">Запрещённое ПО</option>
+          <option value="functions">Запрещённые функции</option>
+          <option value="mods" selected>Запрещённые моды</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Название</label>
+        <input type="text" id="formName" placeholder="Например: Baritone" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Добавил (модератор)</label>
+        <input type="text" id="formAuthor" placeholder="EW_Moder1" list="moderList" autocomplete="off" readonly>
+      </div>
+      <button class="btn-add" id="btnAdd">Добавить</button>
+    </div>
+    <div class="form-msg" id="formMsg"></div>
+  </div>
+
+  <!-- Секции со списками -->
+  <div id="sectionsContainer"></div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== Конфигурация =====
+  const ADMIN_IP = '95.188.76.229';          // твой IP
+  const IP_API = 'https://api.ipify.org?format=json';
+  const STORAGE_KEY = 'envyworld_forbidden_mods_v1';
+  const MODERATORS = [
+    'EW_Moder1', 'EW_Moder2', 'EW_Moder3', 'EW_Moder4',
+    'EW_Moder5', 'EW_Moder6', 'EW_Moder7',
+    'EW_Moder7_1', 'EW_Moder7_2', 'EW_Moder7_3'
+  ];
+
+  // ===== Предзаполненный список =====
+  const DEFAULT_DATA = {
+    software: [
+      { name: 'Takker', addedBy: 'System' },
+      { name: 'Любой батник очистки', addedBy: 'System' },
+      { name: 'Чит-Клиент (Nursultan, Celestial, Akrien, Impact, Ghost и т.д.)', addedBy: 'System' },
+      { name: 'Ping Spoofer и все его виды', addedBy: 'System' },
+      { name: 'Exloader', addedBy: 'System' },
+      { name: 'NewLauncher / FLauncher', addedBy: 'System' },
+      { name: 'Cheat Engine', addedBy: 'System' }
+    ],
+    functions: [
+      { name: 'ESP', addedBy: 'System' },
+      { name: 'HitBox', addedBy: 'System' },
+      { name: 'Reach', addedBy: 'System' },
+      { name: 'FreeCAM', addedBy: 'System' },
+      { name: 'Baritone', addedBy: 'System' },
+      { name: 'X-Ray', addedBy: 'System' },
+      { name: 'ElytraSwap', addedBy: 'System' },
+      { name: 'AutoTotem', addedBy: 'System' },
+      { name: 'AimAssist', addedBy: 'System' },
+      { name: 'T-Bot', addedBy: 'System' },
+      { name: 'И все функции, дающие разумное преимущество над другими игроками', addedBy: 'System' }
+    ],
+    mods: [
+      { name: 'ViaVersion', addedBy: 'System' },
+      { name: 'MouseTweak', addedBy: 'System' },
+      { name: 'Accurate Block Placement', addedBy: 'System' },
+      { name: 'AutoClicker (использование)', addedBy: 'System' },
+      { name: 'Attack Through Grass', addedBy: 'System' },
+      { name: 'Double Hotbar', addedBy: 'System' },
+      { name: 'InvMove', addedBy: 'System' },
+      { name: 'No Mining Cooldown', addedBy: 'System' },
+      { name: 'И все моды, которые как-либо облегчают игровой процесс', addedBy: 'System' }
+    ]
+  };
+
+  const SECTION_LABELS = {
+    software: 'Запрещённое ПО',
+    functions: 'Запрещённые функции',
+    mods: 'Запрещённые моды'
+  };
+
+  // ===== Состояние =====
+  let data = null;
+  let currentModer = localStorage.getItem('envyworld_moder') || '';
+  let isAdmin = false;
+  let searchQuery = '';
+
+  // ===== Утилиты =====
+  function el(id) { return document.getElementById(id); }
+  function esc(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        data = JSON.parse(raw);
+        // гарантируем наличие всех ключей
+        ['software','functions','mods'].forEach(function (k) {
+          if (!Array.isArray(data[k])) data[k] = [];
+        });
+      } else {
+        data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        saveData();
+      }
+    } catch (e) {
+      data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    }
+  }
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // ===== Проверка IP =====
+  async function checkAdmin() {
+    try {
+      const res = await fetch(IP_API);
+      const json = await res.json();
+      isAdmin = (json.ip === ADMIN_IP);
+    } catch (e) {
+      isAdmin = false;
+    }
+    updateAuthUI();
+  }
+
+  // ===== UI авторизации =====
+  function updateAuthUI() {
+    const who = el('authWho');
+    const input = el('moderInput');
+    const btnAuth = el('btnAuth');
+    const btnLogout = el('btnLogout');
+    const addCard = el('addCard');
+    const formAuthor = el('formAuthor');
+
+    // datalist модераторов
+    const dl = el('moderList');
+    dl.innerHTML = MODERATORS.map(function (m) { return '<option value="' + esc(m) + '">'; }).join('');
+
+    if (isAdmin) {
+      who.innerHTML = '<span class="admin-badge">ADMIN</span> <b>akv5</b> — полный доступ';
+      input.style.display = 'none';
+      btnAuth.style.display = 'none';
+      btnLogout.style.display = 'none';
+      addCard.style.display = '';
+      formAuthor.value = 'akv5';
+      formAuthor.readOnly = true;
+    } else if (currentModer) {
+      who.innerHTML = 'Вы вошли как <b>' + esc(currentModer) + '</b>';
+      input.style.display = 'none';
+      btnAuth.style.display = 'none';
+      btnLogout.style.display = '';
+      addCard.style.display = '';
+      formAuthor.value = currentModer;
+      formAuthor.readOnly = true;
+    } else {
+      who.textContent = 'Вы не авторизованы как модератор';
+      input.style.display = '';
+      btnAuth.style.display = '';
+      btnLogout.style.display = 'none';
+      addCard.style.display = 'none';
+      formAuthor.value = '';
+      formAuthor.readOnly = true;
+    }
+    renderSections();
+  }
+
+  // ===== Рендер секций =====
+  function renderSections() {
+    const container = el('sectionsContainer');
+    const q = searchQuery.toLowerCase();
+    let html = '';
+
+    ['software','functions','mods'].forEach(function (key) {
+      let items = data[key] || [];
+      if (q) {
+        items = items.filter(function (it) {
+          return it.name.toLowerCase().indexOf(q) !== -1;
+        });
+      }
+      const count = items.length;
+      const label = SECTION_LABELS[key];
+
+      html += '<div class="section" data-section="' + key + '">';
+      html += '  <div class="section-head" data-toggle="' + key + '">';
+      html += '    <div class="section-head-left">';
+      html += '      <span class="section-title">' + esc(label) + '</span>';
+      html += '      <span class="section-count">' + count + '</span>';
+      html += '    </div>';
+      html += '    <span class="section-toggle">▾</span>';
+      html += '  </div>';
+      html += '  <div class="section-body">';
+
+      if (!items.length) {
+        html += '<div class="mod-item empty">Ничего не найдено</div>';
+      } else {
+        items.forEach(function (item, idx) {
+          const realIndex = data[key].indexOf(item); // индекс в исходном массиве
+          html += '<div class="mod-item" data-key="' + key + '" data-index="' + realIndex + '">';
+          html += '  <span class="mod-name">' + esc(item.name) + '</span>';
+          html += '  <span class="mod-meta">';
+          html += '    <span class="mod-author">добавил: ' + esc(item.addedBy || '—') + '</span>';
+          if (isAdmin) {
+            html += '    <button class="mod-delete" data-key="' + key + '" data-index="' + realIndex + '" title="Удалить">✕</button>';
+          }
+          html += '  </span>';
+          html += '</div>';
+        });
+      }
+
+      html += '  </div>';
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+
+    // обработчики сворачивания
+    container.querySelectorAll('.section-head').forEach(function (head) {
+      head.addEventListener('click', function () {
+        const section = head.closest('.section');
+        section.classList.toggle('collapsed');
+      });
+    });
+
+    // обработчики удаления
+    if (isAdmin) {
+      container.querySelectorAll('.mod-delete').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const key = btn.getAttribute('data-key');
+          const index = parseInt(btn.getAttribute('data-index'), 10);
+          if (isNaN(index)) return;
+          if (!confirm('Удалить «' + data[key][index].name + '»?')) return;
+          data[key].splice(index, 1);
+          saveData();
+          renderSections();
+        });
+      });
+    }
+  }
+
+  // ===== Добавление =====
+  function addItem() {
+    const section = el('formSection').value;
+    const name = el('formName').value.trim();
+    const author = isAdmin ? 'akv5' : currentModer;
+    const msg = el('formMsg');
+
+    if (!name) {
+      msg.className = 'form-msg err';
+      msg.textContent = 'Введите название мода.';
+      return;
+    }
+    if (!author) {
+      msg.className = 'form-msg err';
+      msg.textContent = 'Вы не авторизованы как модератор.';
+      return;
+    }
+    if (!isAdmin && MODERATORS.indexOf(author) === -1) {
+      msg.className = 'form-msg err';
+      msg.textContent = 'Ник «' + author + '» не найден в списке модераторов.';
+      return;
+    }
+
+    // проверка на дубликат (регистронезависимо)
+    const exists = (data[section] || []).some(function (it) {
+      return it.name.toLowerCase() === name.toLowerCase();
+    });
+    if (exists) {
+      msg.className = 'form-msg err';
+      msg.textContent = 'Такой мод уже есть в этом разделе.';
+      return;
+    }
+
+    data[section].push({ name: name, addedBy: author });
+    saveData();
+    el('formName').value = '';
+    msg.className = 'form-msg ok';
+    msg.textContent = 'Добавлено: «' + name + '» от ' + author;
+    renderSections();
+  }
+
+  // ===== Авторизация модератора =====
+  function doAuth() {
+    const val = el('moderInput').value.trim();
+    if (!val) return;
+    if (MODERATORS.indexOf(val) === -1) {
+      alert('Ник «' + val + '» не найден в списке модераторов.');
+      return;
+    }
+    currentModer = val;
+    localStorage.setItem('envyworld_moder', currentModer);
+    updateAuthUI();
+  }
+
+  function doLogout() {
+    currentModer = '';
+    localStorage.removeItem('envyworld_moder');
+    updateAuthUI();
+  }
+
+  // ===== Инициализация =====
+  function init() {
+    loadData();
+    renderSections();
+
+    // поиск
+    const searchInput = el('searchInput');
+    searchInput.addEventListener('input', function (e) {
+      searchQuery = e.target.value.trim();
+      renderSections();
+    });
+
+    // кнопки авторизации
+    el('btnAuth').addEventListener('click', doAuth);
+    el('moderInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') doAuth();
+    });
+    el('btnLogout').addEventListener('click', doLogout);
+
+    // добавление
+    el('btnAdd').addEventListener('click', addItem);
+    el('formName').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') addItem();
+    });
+
+    // проверка IP
+    checkAdmin();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
