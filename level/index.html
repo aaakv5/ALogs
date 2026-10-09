@@ -41,25 +41,24 @@
             <div class="card-body">
 
                 <div class="field">
-                    <label class="field-label" for="blockPreset">Тип блока</label>
-                    <select id="blockPreset" class="input">
-                        <option value="1">Камень / Булыжник / Земля</option>
-                        <option value="2">Дерево (бревно)</option>
-                        <option value="5">Угольный блок</option>
-                        <option value="10">Железный блок</option>
-                        <option value="20">Золотой блок</option>
-                        <option value="40">Лазуритовый блок</option>
-                        <option value="100">Алмазный блок</option>
-                        <option value="150">Изумрудный блок</option>
-                        <option value="500">Незеритовый блок</option>
-                        <option value="800">Маяк</option>
-                        <option value="custom">Своё значение…</option>
-                    </select>
+                    <label class="field-label" for="blockSearch">Поиск блока</label>
+                    <div class="search-box">
+                        <input id="blockSearch" class="input" type="text" placeholder="Например: алмаз, маяк…" autocomplete="off">
+                        <button type="button" id="searchClear" class="search-clear" aria-label="Очистить">×</button>
+                    </div>
                 </div>
 
                 <div class="field">
-                    <label class="field-label" for="blockValue">Ценность блока</label>
-                    <input id="blockValue" class="input" type="number" min="0" step="any" value="1">
+                    <label class="field-label">Блок</label>
+                    <div id="blockList" class="block-list"></div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label">Выбранный блок</label>
+                    <div class="selected-block" id="selectedBlock">
+                        <span class="selected-name">Ничего не выбрано</span>
+                        <span class="selected-value vl-badge" id="selectedValue">—</span>
+                    </div>
                 </div>
 
                 <div class="field">
