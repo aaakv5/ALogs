@@ -1,46 +1,889 @@
 (function () {
     'use strict';
 
-    const presetEl  = document.getElementById('blockPreset');
-    const valueEl   = document.getElementById('blockValue');
-    const stacksEl  = document.getElementById('stacks');
+    var STACK_SIZE = 64;
+    var LEVEL_COST = 100;
 
-    const levelEl   = document.getElementById('resultLevel');
-    const outBlocks = document.getElementById('outBlocks');
-    const outScore  = document.getElementById('outScore');
-    const outLevel  = document.getElementById('outLevel');
+    var BLOCKS = [
+        ["dragon_egg", "Яйцо дракона", 1000],
+        ["budding_amethyst", "Растущий аметист", 1000],
+        ["netherite_block", "Незеритовый блок", 1000],
 
-    const STACK_SIZE = 64;
-    const LEVEL_COST = 100;
+        ["diamond_block", "Алмазный блок", 300],
+        ["emerald_ore", "Изумрудная руда", 200],
+        ["deepslate_emerald_ore", "Глубинносланцевая изумрудная руда", 200],
+        ["ancient_debris", "Древние обломки", 150],
+        ["gold_block", "Золотой блок", 150],
+        ["raw_gold_block", "Блок сырого золота", 150],
+        ["emerald_block", "Изумрудный блок", 100],
+        ["beacon", "Маяк", 100],
+
+        ["deepslate_diamond_ore", "Глубинносланцевая алмазная руда", 75],
+        ["creeper_head", "Голова крипера", 50],
+        ["zombie_head", "Голова зомби", 50],
+        ["skeleton_skull", "Череп скелета", 50],
+        ["player_head", "Голова игрока", 50],
+        ["piglin_head", "Голова пиглина", 100],
+        ["spawner", "Спавнер", 50],
+        ["trial_spawner", "Спавнер испытаний", 50],
+        ["lodestone", "Магнетит", 50],
+        ["respawn_anchor", "Якорь возрождения", 50],
+        ["wither_skeleton_skull", "Череп визер-скелета", 25],
+        ["sponge", "Губка", 20],
+        ["wet_sponge", "Мокрая губка", 20],
+        ["brewing_stand", "Варочная стойка", 20],
+        ["tinted_glass", "Тонированное стекло", 20],
+
+        ["raw_iron_block", "Блок сырого железа", 15],
+        ["nether_portal", "Незер-портал", 15],
+        ["bell", "Колокол", 15],
+        ["crying_obsidian", "Плачущий обсидиан", 12],
+        ["black_shulker_box", "Чёрный шалкеровый ящик", 11],
+        ["blue_shulker_box", "Синий шалкеровый ящик", 11],
+        ["brown_shulker_box", "Коричневый шалкеровый ящик", 11],
+        ["cyan_shulker_box", "Голубой шалкеровый ящик", 11],
+        ["gray_shulker_box", "Серый шалкеровый ящик", 11],
+        ["green_shulker_box", "Зелёный шалкеровый ящик", 11],
+        ["light_blue_shulker_box", "Голубой шалкеровый ящик", 11],
+        ["light_gray_shulker_box", "Светло-серый шалкеровый ящик", 11],
+        ["lime_shulker_box", "Лаймовый шалкеровый ящик", 11],
+        ["magenta_shulker_box", "Пурпурный шалкеровый ящик", 11],
+        ["orange_shulker_box", "Оранжевый шалкеровый ящик", 11],
+        ["pink_shulker_box", "Розовый шалкеровый ящик", 11],
+        ["purple_shulker_box", "Фиолетовый шалкеровый ящик", 11],
+        ["red_shulker_box", "Красный шалкеровый ящик", 11],
+        ["white_shulker_box", "Белый шалкеровый ящик", 11],
+        ["yellow_shulker_box", "Жёлтый шалкеровый ящик", 11],
+
+        ["diamond_ore", "Алмазная руда", 10],
+        ["iron_block", "Железный блок", 10],
+        ["lapis_block", "Лазуритовый блок", 10],
+        ["redstone_block", "Блок редстоуна", 10],
+        ["raw_copper_block", "Блок сырой меди", 10],
+        ["cobweb", "Паутина", 10],
+        ["blue_ice", "Синий лёд", 10],
+        ["obsidian", "Обсидиан", 10],
+        ["anvil", "Наковальня", 10],
+        ["cauldron", "Котёл", 10],
+        ["jukebox", "Проигрыватель", 10],
+        ["note_block", "Нотный блок", 10],
+        ["redstone_lamp", "Редстоуновый фонарь", 10],
+        ["slime_block", "Блок слизи", 10],
+        ["smoker", "Коптильня", 10],
+        ["shulker_box", "Шалкеровый ящик", 10],
+        ["daylight_detector", "Датчик дневного света", 10],
+        ["turtle_egg", "Черепашье яйцо", 10],
+        ["frogspawn", "Икра лягушки", 10],
+        ["sniffer_egg", "Яйцо нюхача", 10],
+        ["reinforced_deepslate", "Укреплённый глубинный сланец", 10],
+
+        ["coal_block", "Угольный блок", 9],
+        ["copper_block", "Медный блок", 9],
+        ["exposed_copper", "Потемневший медный блок", 9],
+        ["weathered_copper", "Окисленный медный блок", 9],
+        ["oxidized_copper", "Зелёный медный блок", 9],
+        ["chiseled_copper", "Резной медный блок", 9],
+        ["cut_copper", "Рубленый медный блок", 9],
+        ["exposed_cut_copper", "Потемневший рубленый медный блок", 9],
+        ["weathered_cut_copper", "Окисленный рубленый медный блок", 9],
+        ["oxidized_cut_copper", "Зелёный рубленый медный блок", 9],
+        ["copper_grate", "Медная решётка", 9],
+        ["copper_bulb", "Медная лампа", 9],
+        ["waxed_copper_block", "Вощёный медный блок", 9],
+        ["waxed_exposed_copper", "Вощёный потемневший медный блок", 9],
+        ["waxed_weathered_copper", "Вощёный окисленный медный блок", 9],
+        ["waxed_oxidized_copper", "Вощёный зелёный медный блок", 9],
+        ["waxed_cut_copper", "Вощёный рубленый медный блок", 9],
+        ["waxed_exposed_cut_copper", "Вощёный потемневший рубленый медный блок", 9],
+        ["waxed_weathered_cut_copper", "Вощёный окисленный рубленый медный блок", 9],
+        ["waxed_oxidized_cut_copper", "Вощёный зелёный рубленый медный блок", 9],
+        ["waxed_copper_grate", "Вощёная медная решётка", 9],
+        ["waxed_copper_bulb", "Вощёная медная лампа", 9],
+        ["sea_lantern", "Морской фонарь", 9],
+        ["cake", "Торт", 9],
+        ["chipped_anvil", "Повреждённая наковальня", 9],
+
+        ["iron_ore", "Железная руда", 3],
+        ["coal_ore", "Угольная руда", 3],
+        ["lapis_ore", "Лазуритовая руда", 3],
+        ["raw_iron_block", "Блок сырого железа", 15],
+        ["dried_kelp_block", "Блок сушёной ламинарии", 3],
+        ["end_rod", "Энд-стержень", 3],
+        ["farmland", "Грядка", 3],
+        ["magma_block", "Магмовый блок", 3],
+        ["dripstone_block", "Капельный камень", 3],
+        ["lantern", "Фонарь", 3],
+        ["soul_lantern", "Фонарь душ", 3],
+        ["soul_campfire", "Костёр душ", 3],
+        ["lightning_rod", "Громоотвод", 3],
+        ["sculk_sensor", "Скалк-сенсор", 3],
+        ["calibrated_sculk_sensor", "Калиброванный скалк-сенсор", 3],
+        ["bookcase", "Книжная полка", 5],
+
+        ["gold_ore", "Золотая руда", 5],
+        ["nether_wart_block", "Блок незерской бородавки", 2],
+        ["iron_door", "Железная дверь", 5],
+        ["iron_bars", "Железные прутья", 2],
+        ["iron_chain", "Железная цепь", 2],
+        ["chain", "Цепь", 2],
+        ["bricks", "Кирпичи", 5],
+        ["brick_stairs", "Кирпичные ступени", 5],
+        ["brick_wall", "Кирпичная стена", 5],
+        ["brick_slab", "Кирпичная плита", 3],
+        ["blast_furnace", "Доменная печь", 5],
+        ["smithing_table", "Кузнечный стол", 6],
+        ["cartography_table", "Стол картографа", 6],
+        ["fletching_table", "Стол лучника", 8],
+        ["lectern", "Кафедра", 8],
+        ["grindstone", "Точильный камень", 8],
+        ["furnace", "Печь", 8],
+        ["scaffolding", "Строительные леса", 6],
+        ["honey_block", "Блок мёда", 5],
+        ["honeycomb_block", "Блок пчелиных сот", 3],
+        ["tnt", "Динамит", 5],
+        ["target", "Мишень", 5],
+        ["conduit", "Проводник", 5],
+        ["sponge", "Губка", 20],
+        ["cobweb", "Паутина", 10],
+        ["chorus_flower", "Цветок хоруса", 5],
+        ["chorus_plant", "Стебель хоруса", 5],
+        ["mycelium", "Мицелий", 5],
+        ["lily_pad", "Лист лилии", 5],
+        ["ice", "Лёд", 5],
+        ["packed_ice", "Плотный лёд", 5],
+        ["frosted_ice", "Морозный лёд", 6],
+        ["enchanting_table", "Стол зачарования", 5],
+        ["bookshelf", "Книжная полка", 5],
+        ["loom", "Ткацкий станок", 5],
+        ["sculk_catalyst", "Скалк-катализатор", 5],
+        ["sculk_shrieker", "Скалк-крикун", 5],
+        ["amethyst_block", "Аметистовый блок", 5],
+        ["ochre_froglight", "Охристый лягушкосвет", 5],
+        ["verdant_froglight", "Зелёный лягушкосвет", 5],
+        ["pearlescent_froglight", "Перламутровый лягушкосвет", 5],
+        ["suspicious_sand", "Подозрительный песок", 5],
+        ["suspicious_gravel", "Подозрительный гравий", 5],
+        ["gilded_blackstone", "Позолоченный чернокамень", 5],
+        ["tuff_bricks", "Туфовые кирпичи", 2],
+
+        ["quartz_block", "Кварцевый блок", 4],
+        ["smooth_quartz", "Гладкий кварц", 4],
+        ["quartz_pillar", "Кварцевая колонна", 4],
+        ["quartz_stairs", "Кварцевые ступени", 2],
+        ["quartz_slab", "Кварцевая плита", 3],
+        ["purpur_pillar", "Пурпуровая колонна", 4],
+        ["purpur_block", "Пурпуровый блок", 3],
+        ["purpur_stairs", "Пурпуровые ступени", 2],
+        ["purpur_slab", "Пурпуровая плита", 3],
+        ["smooth_sandstone", "Гладкий песчаник", 4],
+        ["smooth_red_sandstone", "Гладкий красный песчаник", 4],
+        ["smooth_stone_slab", "Плита гладкого камня", 3],
+        ["stonecutter", "Камнерез", 4],
+        ["short_grass", "Короткая трава", 4],
+        ["grass_block", "Травяной блок", 4],
+
+        ["glass", "Стекло", 2],
+        ["glass_pane", "Стеклянная панель", 1],
+        ["clay", "Глина", 2],
+        ["terracotta", "Терракота", 2],
+        ["hay_block", "Блок сена", 2],
+        ["ladder", "Лестница", 2],
+        ["torch", "Факел", 2],
+        ["wall_torch", "Настенный факел", 2],
+        ["lantern", "Фонарь", 3],
+        ["flower_pot", "Цветочный горшок", 2],
+        ["carved_pumpkin", "Резная тыква", 2],
+        ["jack_o_lantern", "Светильник Джека", 2],
+        ["barrel", "Бочка", 2],
+        ["decorated_pot", "Украшенный горшок", 2],
+        ["heavy_weighted_pressure_plate", "Тяжёлая нажимная плита", 2],
+        ["light_weighted_pressure_plate", "Лёгкая нажимная плита", 3],
+        ["composter", "Компостер", 1],
+        ["crafting_table", "Верстак", 1],
+        ["stonecutter", "Камнерез", 4],
+        ["soul_campfire", "Костёр душ", 3],
+        ["campfire", "Костёр", 5],
+        ["soul_torch", "Факел душ", 1],
+        ["soul_wall_torch", "Настенный факел душ", 1],
+        ["soul_sand", "Песок душ", 2],
+        ["soul_soil", "Почва душ", 1],
+        ["nether_bricks", "Незерские кирпичи", 2],
+        ["nether_brick_stairs", "Незерские ступени", 2],
+        ["nether_brick_wall", "Незерская стена", 2],
+        ["nether_brick_fence", "Незерский забор", 2],
+        ["nether_brick_slab", "Незерская плита", 3],
+        ["nether_sprouts", "Незерские ростки", 1],
+        ["netherrack", "Незерак", 0],
+        ["shroomlight", "Грибной свет", 1],
+        ["crimson_nylium", "Багровый нилиум", 1],
+        ["warped_nylium", "Искажённый нилиум", 1],
+
+        ["andesite", "Андезит", 1],
+        ["diorite", "Диорит", 1],
+        ["granite", "Гранит", 1],
+        ["polished_andesite", "Полированный андезит", 1],
+        ["polished_diorite", "Полированный диорит", 3],
+        ["polished_granite", "Полированный гранит", 3],
+        ["andesite_slab", "Плита андезита", 1],
+        ["andesite_stairs", "Ступени андезита", 1],
+        ["andesite_wall", "Стена андезита", 1],
+        ["diorite_slab", "Плита диорита", 1],
+        ["diorite_stairs", "Ступени диорита", 1],
+        ["diorite_wall", "Стена диорита", 1],
+        ["granite_slab", "Плита гранита", 3],
+        ["granite_stairs", "Ступени гранита", 2],
+        ["granite_wall", "Стена гранита", 1],
+        ["deepslate", "Глубинный сланец", 1],
+        ["cobbled_deepslate", "Булыжный глубинный сланец", 0],
+        ["polished_deepslate", "Полированный глубинный сланец", 2],
+        ["deepslate_bricks", "Кирпичи из глубинного сланца", 2],
+        ["deepslate_tiles", "Плитка из глубинного сланца", 2],
+        ["chiseled_deepslate", "Резной глубинный сланец", 2],
+        ["cracked_deepslate_bricks", "Треснувшие кирпичи из глубинного сланца", 1],
+        ["cracked_deepslate_tiles", "Треснувшая плитка из глубинного сланца", 1],
+        ["blackstone", "Чернокамень", 1],
+        ["blackstone_slab", "Плита чернокамня", 1],
+        ["blackstone_stairs", "Ступени чернокамня", 2],
+        ["blackstone_wall", "Стена чернокамня", 1],
+        ["polished_blackstone", "Полированный чернокамень", 3],
+        ["chiseled_polished_blackstone", "Резной полированный чернокамень", 2],
+        ["gilded_blackstone", "Позолоченный чернокамень", 5],
+        ["basalt", "Базальт", 0],
+        ["smooth_basalt", "Гладкий базальт", 0],
+        ["polished_basalt", "Полированный базальт", 0],
+        ["calcite", "Кальцит", 0],
+        ["tuff", "Туф", 0],
+        ["stone", "Камень", 0],
+        ["cobblestone", "Булыжник", 0],
+        ["cobblestone_slab", "Плита булыжника", 1],
+        ["cobblestone_stairs", "Ступени булыжника", 2],
+        ["cobblestone_wall", "Стена булыжника", 1],
+        ["stone_bricks", "Каменные кирпичи", 2],
+        ["stone_brick_slab", "Плита каменных кирпичей", 3],
+        ["stone_brick_stairs", "Ступени каменных кирпичей", 2],
+        ["stone_brick_wall", "Стена каменных кирпичей", 2],
+        ["cracked_stone_bricks", "Треснувшие каменные кирпичи", 2],
+        ["chiseled_stone_bricks", "Резные каменные кирпичи", 2],
+        ["mossy_stone_bricks", "Мшистые каменные кирпичи", 2],
+        ["mossy_stone_brick_slab", "Плита мшистых каменных кирпичей", 2],
+        ["mossy_stone_brick_stairs", "Ступени мшистых каменных кирпичей", 2],
+        ["mossy_stone_brick_wall", "Стена мшистых каменных кирпичей", 2],
+        ["mossy_cobblestone_slab", "Плита мшистого булыжника", 3],
+        ["mossy_cobblestone_stairs", "Ступени мшистого булыжника", 2],
+        ["mossy_cobblestone_wall", "Стена мшистого булыжника", 1],
+        ["smooth_stone", "Гладкий камень", 0],
+        ["smooth_stone_slab", "Плита гладкого камня", 3],
+        ["stone_slab", "Каменная плита", 3],
+        ["stone_stairs", "Каменные ступени", 2],
+        ["stone_button", "Каменная кнопка", 1],
+        ["stone_pressure_plate", "Каменная нажимная плита", 2],
+
+        ["prismarine", "Призмарин", 1],
+        ["prismarine_bricks", "Призмариновые кирпичи", 2],
+        ["prismarine_slab", "Плита призмарина", 3],
+        ["prismarine_stairs", "Ступени призмарина", 2],
+        ["prismarine_wall", "Стена призмарина", 2],
+        ["prismarine_brick_slab", "Плита призмариновых кирпичей", 3],
+        ["prismarine_brick_stairs", "Ступени призмариновых кирпичей", 2],
+        ["dark_prismarine", "Тёмный призмарин", 1],
+        ["dark_prismarine_slab", "Плита тёмного призмарина", 1],
+        ["dark_prismarine_stairs", "Ступени тёмного призмарина", 2],
+        ["end_stone", "Эндерняк", 1],
+        ["end_stone_bricks", "Кирпичи из эндерняка", 2],
+        ["end_stone_brick_slab", "Плита из эндерняк-кирпичей", 2],
+        ["end_stone_brick_stairs", "Ступени из эндерняк-кирпичей", 2],
+        ["end_stone_brick_wall", "Стена из эндерняк-кирпичей", 2],
+
+        ["sand", "Песок", 0],
+        ["red_sand", "Красный песок", 1],
+        ["sandstone", "Песчаник", 0],
+        ["red_sandstone", "Красный песчаник", 0],
+        ["sandstone_slab", "Плита песчаника", 1],
+        ["sandstone_stairs", "Ступени песчаника", 2],
+        ["sandstone_wall", "Стена песчаника", 2],
+        ["red_sandstone_slab", "Плита красного песчаника", 3],
+        ["red_sandstone_stairs", "Ступени красного песчаника", 2],
+        ["red_sandstone_wall", "Стена красного песчаника", 2],
+        ["chiseled_sandstone", "Резной песчаник", 2],
+        ["chiseled_red_sandstone", "Резной красный песчаник", 2],
+        ["cut_sandstone", "Рубленый песчаник", 2],
+        ["cut_red_sandstone", "Рубленый красный песчаник", 2],
+        ["cut_sandstone_slab", "Плита рубленого песчаника", 1],
+        ["cut_red_sandstone_slab", "Плита рубленого красного песчаника", 1],
+        ["smooth_sandstone_slab", "Плита гладкого песчаника", 3],
+        ["smooth_sandstone_stairs", "Ступени гладкого песчаника", 3],
+        ["smooth_red_sandstone_slab", "Плита гладкого красного песчаника", 3],
+        ["smooth_red_sandstone_stairs", "Ступени гладкого красного песчаника", 2],
+
+        ["dirt", "Земля", 1],
+        ["coarse_dirt", "Каменистая земля", 1],
+        ["dirt_path", "Тропинка", 1],
+        ["gravel", "Гравий", 1],
+        ["podzol", "Подзол", 2],
+        ["rooted_dirt", "Укоренённая земля", 0],
+        ["mud", "Грязь", 0],
+        ["packed_mud", "Плотная грязь", 0],
+        ["mud_bricks", "Грязевые кирпичи", 2],
+        ["mud_brick_slab", "Плита грязевых кирпичей", 3],
+        ["mud_brick_stairs", "Ступени грязевых кирпичей", 2],
+        ["mud_brick_wall", "Стена грязевых кирпичей", 1],
+        ["bone_block", "Костный блок", 1],
+        ["shroomlight", "Грибной свет", 1],
+        ["glowstone", "Светокамень", 1],
+        ["sea_pickle", "Морской огурец", 0],
+        ["cactus", "Кактус", 0],
+        ["bamboo", "Бамбук", 0],
+        ["bamboo_block", "Бамбуковый блок", 1],
+        ["sculk", "Скалк", 0],
+        ["sculk_vein", "Скалк-вена", 0],
+        ["amethyst_cluster", "Аметистовая друза", 4],
+        ["small_amethyst_bud", "Малый аметистовый росток", 0],
+        ["medium_amethyst_bud", "Средний аметистовый росток", 0],
+        ["large_amethyst_bud", "Большой аметистовый росток", 0],
+        ["pointed_dripstone", "Капельник", 0],
+
+        ["oak_log", "Дубовое бревно", 1],
+        ["oak_planks", "Дубовые доски", 1],
+        ["oak_sapling", "Дубовый саженец", 1],
+        ["oak_leaves", "Дубовая листва", 1],
+        ["oak_wood", "Дубовая древесина", 1],
+        ["oak_door", "Дубовая дверь", 1],
+        ["oak_fence", "Дубовый забор", 1],
+        ["oak_fence_gate", "Дубовая калитка", 1],
+        ["oak_slab", "Дубовая плита", 1],
+        ["oak_stairs", "Дубовые ступени", 1],
+        ["oak_trapdoor", "Дубовый люк", 1],
+        ["oak_button", "Дубовая кнопка", 1],
+        ["oak_pressure_plate", "Дубовая нажимная плита", 1],
+        ["oak_sign", "Дубовая табличка", 1],
+        ["oak_hanging_sign", "Дубовая висячая табличка", 6],
+        ["oak_shelf", "Дубовая полка", 1],
+
+        ["spruce_log", "Еловое бревно", 1],
+        ["spruce_planks", "Еловые доски", 1],
+        ["spruce_sapling", "Еловый саженец", 1],
+        ["spruce_leaves", "Еловая листва", 1],
+        ["spruce_wood", "Еловая древесина", 1],
+        ["spruce_door", "Еловая дверь", 1],
+        ["spruce_fence", "Еловый забор", 1],
+        ["spruce_fence_gate", "Еловая калитка", 1],
+        ["spruce_slab", "Еловая плита", 1],
+        ["spruce_stairs", "Еловые ступени", 1],
+        ["spruce_trapdoor", "Еловый люк", 1],
+        ["spruce_button", "Еловая кнопка", 1],
+        ["spruce_pressure_plate", "Еловая нажимная плита", 1],
+        ["spruce_sign", "Еловая табличка", 1],
+        ["spruce_hanging_sign", "Еловая висячая табличка", 6],
+        ["spruce_shelf", "Еловая полка", 1],
+
+        ["birch_log", "Берёзовое бревно", 1],
+        ["birch_planks", "Берёзовые доски", 1],
+        ["birch_sapling", "Берёзовый саженец", 1],
+        ["birch_leaves", "Берёзовая листва", 1],
+        ["birch_wood", "Берёзовая древесина", 1],
+        ["birch_door", "Берёзовая дверь", 1],
+        ["birch_fence", "Берёзовый забор", 1],
+        ["birch_slab", "Берёзовая плита", 1],
+        ["birch_stairs", "Берёзовые ступени", 1],
+        ["birch_trapdoor", "Берёзовый люк", 1],
+        ["birch_button", "Берёзовая кнопка", 1],
+        ["birch_pressure_plate", "Берёзовая нажимная плита", 1],
+        ["birch_sign", "Берёзовая табличка", 1],
+        ["birch_shelf", "Берёзовая полка", 1],
+
+        ["jungle_log", "Бревно тропического дерева", 1],
+        ["jungle_planks", "Доски тропического дерева", 1],
+        ["jungle_sapling", "Саженец тропического дерева", 1],
+        ["jungle_leaves", "Листва тропического дерева", 1],
+        ["jungle_wood", "Древесина тропического дерева", 1],
+        ["jungle_door", "Дверь тропического дерева", 1],
+        ["jungle_fence", "Забор тропического дерева", 1],
+        ["jungle_slab", "Плита тропического дерева", 1],
+        ["jungle_stairs", "Ступени тропического дерева", 1],
+        ["jungle_trapdoor", "Люк тропического дерева", 1],
+        ["jungle_button", "Кнопка тропического дерева", 1],
+        ["jungle_pressure_plate", "Нажимная плита тропического дерева", 1],
+        ["jungle_sign", "Табличка тропического дерева", 1],
+        ["jungle_shelf", "Полка тропического дерева", 1],
+
+        ["acacia_log", "Акациевое бревно", 1],
+        ["acacia_planks", "Акациевые доски", 1],
+        ["acacia_sapling", "Акациевый саженец", 1],
+        ["acacia_leaves", "Акациевая листва", 1],
+        ["acacia_wood", "Акациевая древесина", 1],
+        ["acacia_door", "Акациевая дверь", 1],
+        ["acacia_fence", "Акациевый забор", 1],
+        ["acacia_slab", "Акациевая плита", 1],
+        ["acacia_stairs", "Акациевые ступени", 1],
+        ["acacia_trapdoor", "Акациевый люк", 1],
+        ["acacia_button", "Акациевая кнопка", 1],
+        ["acacia_pressure_plate", "Акациевая нажимная плита", 1],
+        ["acacia_sign", "Акациевая табличка", 1],
+        ["acacia_shelf", "Акациевая полка", 1],
+
+        ["dark_oak_log", "Бревно тёмного дуба", 1],
+        ["dark_oak_planks", "Доски тёмного дуба", 1],
+        ["dark_oak_sapling", "Саженец тёмного дуба", 1],
+        ["dark_oak_leaves", "Листва тёмного дуба", 1],
+        ["dark_oak_wood", "Древесина тёмного дуба", 1],
+        ["dark_oak_door", "Дверь тёмного дуба", 1],
+        ["dark_oak_fence", "Забор тёмного дуба", 1],
+        ["dark_oak_slab", "Плита тёмного дуба", 1],
+        ["dark_oak_stairs", "Ступени тёмного дуба", 1],
+        ["dark_oak_trapdoor", "Люк тёмного дуба", 1],
+        ["dark_oak_button", "Кнопка тёмного дуба", 1],
+        ["dark_oak_pressure_plate", "Нажимная плита тёмного дуба", 1],
+        ["dark_oak_sign", "Табличка тёмного дуба", 1],
+        ["dark_oak_shelf", "Полка тёмного дуба", 1],
+
+        ["cherry_log", "Вишнёвое бревно", 0],
+        ["cherry_planks", "Вишнёвые доски", 1],
+        ["cherry_sapling", "Вишнёвый саженец", 0],
+        ["cherry_leaves", "Вишнёвая листва", 0],
+        ["cherry_wood", "Вишнёвая древесина", 0],
+        ["cherry_door", "Вишнёвая дверь", 1],
+        ["cherry_fence", "Вишнёвый забор", 2],
+        ["cherry_slab", "Вишнёвая плита", 3],
+        ["cherry_stairs", "Вишнёвые ступени", 2],
+        ["cherry_trapdoor", "Вишнёвый люк", 1],
+        ["cherry_button", "Вишнёвая кнопка", 1],
+        ["cherry_pressure_plate", "Вишнёвая нажимная плита", 1],
+        ["cherry_sign", "Вишнёвая табличка", 6],
+        ["cherry_shelf", "Вишнёвая полка", 1],
+
+        ["pale_oak_log", "Бревно бледного дуба", 0],
+        ["pale_oak_planks", "Доски бледного дуба", 1],
+        ["pale_oak_sapling", "Саженец бледного дуба", 0],
+        ["pale_oak_leaves", "Листва бледного дуба", 0],
+        ["pale_oak_wood", "Древесина бледного дуба", 0],
+        ["pale_oak_door", "Дверь бледного дуба", 1],
+        ["pale_oak_fence", "Забор бледного дуба", 2],
+        ["pale_oak_slab", "Плита бледного дуба", 3],
+        ["pale_oak_stairs", "Ступени бледного дуба", 2],
+        ["pale_oak_trapdoor", "Люк бледного дуба", 1],
+        ["pale_oak_button", "Кнопка бледного дуба", 1],
+        ["pale_oak_pressure_plate", "Нажимная плита бледного дуба", 1],
+        ["pale_oak_sign", "Табличка бледного дуба", 6],
+        ["pale_oak_shelf", "Полка бледного дуба", 1],
+
+        ["mangrove_log", "Мангровое бревно", 0],
+        ["mangrove_planks", "Мангровые доски", 1],
+        ["mangrove_propagule", "Мангровый проросток", 0],
+        ["mangrove_leaves", "Мангровая листва", 0],
+        ["mangrove_wood", "Мангровая древесина", 0],
+        ["mangrove_door", "Мангровая дверь", 1],
+        ["mangrove_fence", "Мангровый забор", 2],
+        ["mangrove_slab", "Мангровая плита", 3],
+        ["mangrove_stairs", "Мангровые ступени", 2],
+        ["mangrove_trapdoor", "Мангровый люк", 1],
+        ["mangrove_button", "Мангровая кнопка", 1],
+        ["mangrove_pressure_plate", "Мангровая нажимная плита", 1],
+        ["mangrove_sign", "Мангровая табличка", 6],
+        ["mangrove_shelf", "Мангровая полка", 1],
+
+        ["crimson_stem", "Багровый стебель", 1],
+        ["crimson_planks", "Багровые доски", 1],
+        ["crimson_fungus", "Багровый гриб", 1],
+        ["crimson_hyphae", "Багровая гифа", 1],
+        ["crimson_door", "Багровая дверь", 1],
+        ["crimson_fence", "Багровый забор", 1],
+        ["crimson_slab", "Багровая плита", 1],
+        ["crimson_stairs", "Багровые ступени", 1],
+        ["crimson_trapdoor", "Багровый люк", 1],
+        ["crimson_button", "Багровая кнопка", 1],
+        ["crimson_pressure_plate", "Багровая нажимная плита", 1],
+        ["crimson_sign", "Багровая табличка", 1],
+        ["crimson_roots", "Багровые корни", 1],
+        ["crimson_shelf", "Багровая полка", 1],
+
+        ["warped_stem", "Искажённый стебель", 1],
+        ["warped_planks", "Искажённые доски", 1],
+        ["warped_fungus", "Искажённый гриб", 1],
+        ["warped_hyphae", "Искажённая гифа", 1],
+        ["warped_door", "Искажённая дверь", 1],
+        ["warped_fence", "Искажённый забор", 1],
+        ["warped_slab", "Искажённая плита", 1],
+        ["warped_stairs", "Искажённые ступени", 1],
+        ["warped_trapdoor", "Искажённый люк", 1],
+        ["warped_button", "Искажённая кнопка", 1],
+        ["warped_pressure_plate", "Искажённая нажимная плита", 1],
+        ["warped_sign", "Искажённая табличка", 1],
+        ["warped_roots", "Искажённые корни", 1],
+        ["warped_shelf", "Искажённая полка", 1],
+        ["warped_wart_block", "Блок искажённой бородавки", 1],
+
+        ["bamboo_planks", "Бамбуковые доски", 1],
+        ["bamboo_mosaic", "Бамбуковая мозаика", 1],
+        ["bamboo_door", "Бамбуковая дверь", 1],
+        ["bamboo_fence", "Бамбуковый забор", 2],
+        ["bamboo_slab", "Бамбуковая плита", 3],
+        ["bamboo_stairs", "Бамбуковые ступени", 2],
+        ["bamboo_trapdoor", "Бамбуковый люк", 1],
+        ["bamboo_button", "Бамбуковая кнопка", 1],
+        ["bamboo_pressure_plate", "Бамбуковая нажимная плита", 1],
+        ["bamboo_sign", "Бамбуковая табличка", 6],
+        ["bamboo_shelf", "Бамбуковая полка", 1],
+
+        ["black_wool", "Чёрная шерсть", 2],
+        ["blue_wool", "Синяя шерсть", 2],
+        ["brown_wool", "Коричневая шерсть", 2],
+        ["cyan_wool", "Голубая шерсть", 2],
+        ["gray_wool", "Серая шерсть", 2],
+        ["green_wool", "Зелёная шерсть", 2],
+        ["light_blue_wool", "Голубая шерсть", 2],
+        ["light_gray_wool", "Светло-серая шерсть", 2],
+        ["lime_wool", "Лаймовая шерсть", 2],
+        ["magenta_wool", "Пурпурная шерсть", 2],
+        ["orange_wool", "Оранжевая шерсть", 2],
+        ["pink_wool", "Розовая шерсть", 2],
+        ["purple_wool", "Фиолетовая шерсть", 2],
+        ["red_wool", "Красная шерсть", 2],
+        ["white_wool", "Белая шерсть", 2],
+        ["yellow_wool", "Жёлтая шерсть", 2],
+
+        ["black_concrete", "Чёрный бетон", 3],
+        ["blue_concrete", "Синий бетон", 3],
+        ["brown_concrete", "Коричневый бетон", 3],
+        ["cyan_concrete", "Голубой бетон", 3],
+        ["gray_concrete", "Серый бетон", 3],
+        ["green_concrete", "Зелёный бетон", 3],
+        ["light_blue_concrete", "Голубой бетон", 3],
+        ["light_gray_concrete", "Светло-серый бетон", 3],
+        ["lime_concrete", "Лаймовый бетон", 3],
+        ["magenta_concrete", "Пурпурный бетон", 3],
+        ["orange_concrete", "Оранжевый бетон", 3],
+        ["pink_concrete", "Розовый бетон", 3],
+        ["purple_concrete", "Фиолетовый бетон", 3],
+        ["red_concrete", "Красный бетон", 3],
+        ["white_concrete", "Белый бетон", 3],
+        ["yellow_concrete", "Жёлтый бетон", 3],
+
+        ["black_terracotta", "Чёрная терракота", 2],
+        ["blue_terracotta", "Синяя терракота", 2],
+        ["brown_terracotta", "Коричневая терракота", 2],
+        ["cyan_terracotta", "Голубая терракота", 2],
+        ["gray_terracotta", "Серая терракота", 2],
+        ["green_terracotta", "Зелёная терракота", 2],
+        ["light_blue_terracotta", "Голубая терракота", 2],
+        ["light_gray_terracotta", "Светло-серая терракота", 2],
+        ["lime_terracotta", "Лаймовая терракота", 2],
+        ["magenta_terracotta", "Пурпурная терракота", 2],
+        ["orange_terracotta", "Оранжевая терракота", 2],
+        ["pink_terracotta", "Розовая терракота", 2],
+        ["purple_terracotta", "Фиолетовая терракота", 2],
+        ["red_terracotta", "Красная терракота", 2],
+        ["white_terracotta", "Белая терракота", 2],
+        ["yellow_terracotta", "Жёлтая терракота", 2],
+
+        ["black_carpet", "Чёрный ковёр", 1],
+        ["blue_carpet", "Синий ковёр", 1],
+        ["brown_carpet", "Коричневый ковёр", 1],
+        ["cyan_carpet", "Голубой ковёр", 1],
+        ["gray_carpet", "Серый ковёр", 1],
+        ["green_carpet", "Зелёный ковёр", 1],
+        ["light_blue_carpet", "Голубой ковёр", 1],
+        ["light_gray_carpet", "Светло-серый ковёр", 1],
+        ["lime_carpet", "Лаймовый ковёр", 1],
+        ["magenta_carpet", "Пурпурный ковёр", 1],
+        ["orange_carpet", "Оранжевый ковёр", 1],
+        ["pink_carpet", "Розовый ковёр", 1],
+        ["purple_carpet", "Фиолетовый ковёр", 1],
+        ["red_carpet", "Красный ковёр", 1],
+        ["white_carpet", "Белый ковёр", 1],
+        ["yellow_carpet", "Жёлтый ковёр", 1],
+
+        ["black_stained_glass", "Чёрное стекло", 2],
+        ["blue_stained_glass", "Синее стекло", 2],
+        ["brown_stained_glass", "Коричневое стекло", 2],
+        ["cyan_stained_glass", "Голубое стекло", 2],
+        ["gray_stained_glass", "Серое стекло", 2],
+        ["green_stained_glass", "Зелёное стекло", 2],
+        ["light_blue_stained_glass", "Голубое стекло", 2],
+        ["light_gray_stained_glass", "Светло-серое стекло", 2],
+        ["lime_stained_glass", "Лаймовое стекло", 2],
+        ["magenta_stained_glass", "Пурпурное стекло", 2],
+        ["orange_stained_glass", "Оранжевое стекло", 2],
+        ["pink_stained_glass", "Розовое стекло", 2],
+        ["purple_stained_glass", "Фиолетовое стекло", 2],
+        ["red_stained_glass", "Красное стекло", 2],
+        ["white_stained_glass", "Белое стекло", 2],
+        ["yellow_stained_glass", "Жёлтое стекло", 2],
+
+        ["poppy", "Мак", 1],
+        ["dandelion", "Одуванчик", 1],
+        ["blue_orchid", "Синяя орхидея", 1],
+        ["allium", "Лук", 1],
+        ["azure_bluet", "Хаустония", 1],
+        ["cornflower", "Василёк", 1],
+        ["lily_of_the_valley", "Ландыш", 1],
+        ["orange_tulip", "Оранжевый тюльпан", 1],
+        ["pink_tulip", "Розовый тюльпан", 1],
+        ["red_tulip", "Красный тюльпан", 1],
+        ["white_tulip", "Белый тюльпан", 1],
+        ["oxeye_daisy", "Нивяник", 1],
+        ["wither_rose", "Роза визера", 1],
+        ["sunflower", "Подсолнух", 0],
+        ["lilac", "Сирень", 1],
+        ["rose_bush", "Розовый куст", 1],
+        ["peony", "Пион", 1],
+        ["brown_mushroom", "Коричневый гриб", 1],
+        ["red_mushroom", "Красный гриб", 1],
+        ["brown_mushroom_block", "Блок коричневого гриба", 1],
+        ["red_mushroom_block", "Блок красного гриба", 1],
+        ["mushroom_stem", "Ножка гриба", 1],
+        ["vine", "Лианы", 0],
+        ["twisting_vines", "Искажённые лианы", 0],
+        ["weeping_vines", "Плачущие лианы", 0],
+        ["kelp", "Ламинария", 0],
+        ["seagrass", "Морская трава", 0],
+        ["sugar_cane", "Сахарный тростник", 0],
+        ["wheat", "Пшеница", 0],
+        ["carrots", "Морковь", 1],
+        ["potatoes", "Картофель", 0],
+        ["beetroots", "Свёкла", 0],
+        ["nether_wart", "Незерская бородавка", 0],
+        ["cocoa", "Какао", 0],
+        ["fern", "Папоротник", 0],
+        ["large_fern", "Большой папоротник", 0],
+        ["dead_bush", "Мёртвый куст", 0],
+        ["sweet_berry_bush", "Куст сладких ягод", 0],
+        ["cave_vines", "Пещерные лианы", 0],
+        ["cave_vines_plant", "Пещерные лианы", 0],
+        ["moss_block", "Блок мха", 0],
+        ["moss_carpet", "Мшистый ковёр", 0],
+        ["azalea", "Азалия", 0],
+        ["flowering_azalea", "Цветущая азалия", 0],
+        ["azalea_leaves", "Листва азалии", 0],
+        ["flowering_azalea_leaves", "Листва цветущей азалии", 0],
+        ["spore_blossom", "Спороцвет", 0],
+        ["big_dripleaf", "Большой капельнолист", 0],
+        ["small_dripleaf", "Малый капельнолист", 0],
+        ["glow_lichen", "Светящийся лишайник", 0],
+        ["hanging_roots", "Свисающие корни", 0],
+        ["pink_petals", "Розовые лепестки", 0],
+        ["torchflower", "Факельный цветок", 0],
+        ["pitcher_plant", "Растение-кувшин", 0],
+        ["bush", "Куст", 1],
+        ["firefly_bush", "Куст светлячков", 1],
+        ["leaf_litter", "Опавшая листва", 1],
+        ["short_dry_grass", "Короткая сухая трава", 1],
+        ["tall_dry_grass", "Высокая сухая трава", 1],
+        ["wildflowers", "Полевые цветы", 1],
+
+        ["turtle_egg", "Черепашье яйцо", 10],
+        ["creeper_wall_head", "Голова крипера (настенная)", 10],
+        ["zombie_wall_head", "Голова зомби (настенная)", 10],
+        ["skeleton_wall_skull", "Череп скелета (настенный)", 100],
+        ["player_wall_head", "Голова игрока (настенная)", 10],
+        ["piglin_wall_head", "Голова пиглина (настенная)", 10],
+        ["wither_skeleton_wall_skull", "Череп визер-скелета (настенный)", 10],
+        ["dragon_head", "Голова дракона", 1],
+        ["dragon_wall_head", "Голова дракона (настенная)", 10],
+        ["end_portal_frame", "Рамка эндер-портала", 0],
+        ["end_gateway", "Эндер-врата", 0],
+        ["end_portal", "Эндер-портал", 0],
+        ["nether_portal", "Незер-портал", 15],
+        ["barrier", "Барьер", 0],
+        ["bedrock", "Бедрок", 0],
+        ["command_block", "Командный блок", 0],
+        ["chain_command_block", "Цепной командный блок", 0],
+        ["repeating_command_block", "Повторяющийся командный блок", 0],
+        ["structure_block", "Блок структуры", 0],
+        ["structure_void", "Структурная пустота", 0],
+        ["jigsaw", "Блок-головоломка", 0],
+        ["light", "Свет", 30],
+        ["vault", "Хранилище", 1],
+        ["crafter", "Сборщик", 1],
+        ["heavy_core", "Тяжёлое ядро", 1],
+        ["copper_door", "Медная дверь", 1],
+        ["copper_trapdoor", "Медный люк", 2],
+        ["copper_bars", "Медные прутья", 1],
+        ["copper_chain", "Медная цепь", 1],
+        ["copper_chest", "Медный сундук", 1],
+        ["copper_lantern", "Медный фонарь", 1],
+        ["copper_torch", "Медный факел", 1],
+        ["copper_wall_torch", "Медный настенный факел", 1],
+        ["copper_golem_statue", "Статуя медного голема", 1],
+        ["exposed_lightning_rod", "Потемневший громоотвод", 1],
+        ["oxidized_lightning_rod", "Зелёный громоотвод", 1],
+        ["weathered_lightning_rod", "Окисленный громоотвод", 1],
+        ["waxed_lightning_rod", "Вощёный громоотвод", 1],
+        ["chiseled_bookshelf", "Резная книжная полка", 3],
+        ["bee_nest", "Пчелиное гнездо", 0],
+        ["beehive", "Улей", 0],
+        ["candle", "Свеча", 1],
+        ["candle_cake", "Торт со свечой", 1],
+        ["sniffer_egg", "Яйцо нюхача", 10],
+        ["creaking_heart", "Сердце скрипуна", 1],
+        ["resin_block", "Блок смолы", 0],
+        ["resin_bricks", "Смоляные кирпичи", 0],
+        ["resin_brick_slab", "Плита смоляных кирпичей", 3],
+        ["resin_brick_stairs", "Ступени смоляных кирпичей", 2],
+        ["resin_brick_wall", "Стена смоляных кирпичей", 1],
+        ["resin_clump", "Комок смолы", 0],
+        ["chiseled_resin_bricks", "Резные смоляные кирпичи", 1],
+        ["dried_ghast", "Высушенный гаст", 1],
+
+        ["black_bed", "Чёрная кровать", 6],
+        ["blue_bed", "Синяя кровать", 6],
+        ["brown_bed", "Коричневая кровать", 6],
+        ["cyan_bed", "Голубая кровать", 6],
+        ["gray_bed", "Серая кровать", 6],
+        ["green_bed", "Зелёная кровать", 6],
+        ["light_blue_bed", "Голубая кровать", 6],
+        ["light_gray_bed", "Светло-серая кровать", 6],
+        ["lime_bed", "Лаймовая кровать", 6],
+        ["magenta_bed", "Пурпурная кровать", 6],
+        ["orange_bed", "Оранжевая кровать", 6],
+        ["pink_bed", "Розовая кровать", 6],
+        ["purple_bed", "Фиолетовая кровать", 6],
+        ["red_bed", "Красная кровать", 6],
+        ["white_bed", "Белая кровать", 6],
+        ["yellow_bed", "Жёлтая кровать", 6],
+
+        ["black_banner", "Чёрный флаг", 2],
+        ["blue_banner", "Синий флаг", 2],
+        ["brown_banner", "Коричневый флаг", 2],
+        ["cyan_banner", "Голубой флаг", 2],
+        ["gray_banner", "Серый флаг", 2],
+        ["green_banner", "Зелёный флаг", 2],
+        ["light_blue_banner", "Голубой флаг", 2],
+        ["light_gray_banner", "Светло-серый флаг", 2],
+        ["lime_banner", "Лаймовый флаг", 2],
+        ["magenta_banner", "Пурпурный флаг", 2],
+        ["orange_banner", "Оранжевый флаг", 2],
+        ["pink_banner", "Розовый флаг", 2],
+        ["purple_banner", "Фиолетовый флаг", 2],
+        ["red_banner", "Красный флаг", 2],
+        ["white_banner", "Белый флаг", 2],
+        ["yellow_banner", "Жёлтый флаг", 2],
+
+        ["activator_rail", "Активирующие рельсы", -10],
+        ["detector_rail", "Рельсы-детектор", -10],
+        ["powered_rail", "Энергорельсы", -20],
+        ["rail", "Рельсы", -5],
+        ["chest", "Сундук", -5],
+        ["trapped_chest", "Сундук-ловушка", -5],
+        ["ender_chest", "Эндер-сундук", -1],
+        ["hopper", "Воронка", -10],
+        ["dropper", "Выбрасыватель", -30],
+        ["dispenser", "Раздатчик", -50],
+        ["observer", "Наблюдатель", -50],
+        ["piston", "Поршень", -5],
+        ["sticky_piston", "Липкий поршень", 1],
+        ["piston_head", "Головка поршня", -5],
+        ["moving_piston", "Движущийся поршень", 1],
+        ["repeater", "Повторитель", -1],
+        ["comparator", "Компаратор", -1],
+        ["redstone_torch", "Редстоуновый факел", -1],
+        ["redstone_wall_torch", "Настенный редстоуновый факел", -1],
+        ["redstone_wire", "Редстоуновая пыль", -1],
+        ["lever", "Рычаг", 1],
+        ["tripwire", "Растяжка", 2],
+        ["tripwire_hook", "Крюк растяжки", 2],
+        ["water", "Вода", 0],
+        ["lava", "Лава", 0],
+        ["fire", "Огонь", 0],
+        ["soul_fire", "Огонь душ", 1]
+    ];
+
+    var searchEl   = document.getElementById('blockSearch');
+    var clearEl    = document.getElementById('searchClear');
+    var listEl     = document.getElementById('blockList');
+    var stacksEl   = document.getElementById('stacks');
+    var selNameEl  = document.getElementById('selectedBlock').querySelector('.selected-name');
+    var selValEl   = document.getElementById('selectedValue');
+    var levelEl    = document.getElementById('resultLevel');
+    var outBlocks  = document.getElementById('outBlocks');
+    var outScore   = document.getElementById('outScore');
+    var outLevel   = document.getElementById('outLevel');
+
+    var selected = null;
 
     function fmt(n) {
         if (!isFinite(n)) return '0';
         return n.toLocaleString('ru-RU', { maximumFractionDigits: 2 });
     }
 
-    presetEl.addEventListener('change', function () {
-        if (presetEl.value !== 'custom') {
-            valueEl.value = presetEl.value;
+    function renderList(filter) {
+        var q = (filter || '').trim().toLowerCase();
+        var items = BLOCKS;
+        if (q) {
+            items = BLOCKS.filter(function (b) {
+                return b[0].toLowerCase().indexOf(q) !== -1 ||
+                       b[1].toLowerCase().indexOf(q) !== -1;
+            });
         }
-        calc();
-    });
 
-    valueEl.addEventListener('input', function () {
-        const match = Array.from(presetEl.options)
-            .find(o => o.value === valueEl.value);
-        presetEl.value = match ? match.value : 'custom';
-        calc();
-    });
+        listEl.innerHTML = '';
 
-    stacksEl.addEventListener('input', calc);
+        if (!items.length) {
+            var empty = document.createElement('div');
+            empty.className = 'block-empty';
+            empty.textContent = 'Ничего не найдено';
+            listEl.appendChild(empty);
+            return;
+        }
+
+        var frag = document.createDocumentFragment();
+        items.forEach(function (b) {
+            var row = document.createElement('div');
+            row.className = 'block-item' + (selected && selected[0] === b[0] ? ' active' : '');
+            row.dataset.id = b[0];
+
+            var name = document.createElement('span');
+            name.className = 'block-name';
+            name.textContent = b[1];
+
+            var val = document.createElement('span');
+            val.className = 'block-value';
+            val.textContent = b[2];
+
+            row.appendChild(name);
+            row.appendChild(val);
+
+            row.addEventListener('click', function () {
+                selectBlock(b);
+            });
+
+            frag.appendChild(row);
+        });
+
+        listEl.appendChild(frag);
+    }
+
+    function selectBlock(b) {
+        selected = b;
+        selNameEl.textContent = b[1];
+        selValEl.textContent = b[2];
+        selValEl.classList.remove('empty');
+
+        Array.prototype.forEach.call(listEl.children, function (el) {
+            if (el.dataset && el.dataset.id === b[0]) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        });
+
+        calc();
+    }
 
     function calc() {
-        const value  = parseFloat(valueEl.value)  || 0;
-        const stacks = parseFloat(stacksEl.value) || 0;
+        if (!selected) {
+            levelEl.textContent   = '0';
+            outBlocks.textContent = '0';
+            outScore.textContent  = '0';
+            outLevel.textContent  = '0';
+            return;
+        }
 
-        const totalItems = stacks * STACK_SIZE;
-        const blocks     = totalItems * value;
-        const level      = blocks / LEVEL_COST;
+        var value  = selected[2];
+        var stacks = parseFloat(stacksEl.value) || 0;
+
+        var totalItems = stacks * STACK_SIZE;
+        var blocks     = totalItems * value;
+        var level      = blocks / LEVEL_COST;
 
         levelEl.textContent   = fmt(Math.floor(level));
         outBlocks.textContent = fmt(totalItems);
@@ -48,5 +891,20 @@
         outLevel.textContent  = fmt(level);
     }
 
+    searchEl.addEventListener('input', function () {
+        clearEl.classList.toggle('visible', searchEl.value.length > 0);
+        renderList(searchEl.value);
+    });
+
+    clearEl.addEventListener('click', function () {
+        searchEl.value = '';
+        clearEl.classList.remove('visible');
+        renderList('');
+        searchEl.focus();
+    });
+
+    stacksEl.addEventListener('input', calc);
+
+    renderList('');
     calc();
 })();
