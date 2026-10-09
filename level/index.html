@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="level.css?v=2">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -15,7 +15,7 @@
 
     <div class="top">
         <div>
-            <div class="top-label">ONEBLOCK</div>
+            <div class="top-label">ONEBLOCK · Утилиты</div>
             <div class="top-title">Калькулятор уровня острова</div>
         </div>
         <div class="pill pill-green">
@@ -59,13 +59,8 @@
                     <input id="stacks" class="input" type="number" min="0" step="any" value="1">
                 </div>
 
-                <div class="field">
-                    <label class="field-label" for="levelCost">Стоимость уровня (level_cost)</label>
-                    <input id="levelCost" class="input" type="number" min="1" step="any" value="100">
-                </div>
-
                 <div class="field-hint">
-                    Формула: <span class="mono">blocks / level_cost</span>
+                    Формула: <span class="mono">(стаки × 64 × ценность) / 100</span>
                 </div>
 
             </div>
@@ -93,7 +88,7 @@
                         <span class="mono" id="outScore">0</span>
                     </div>
                     <div class="result-row">
-                        <span>÷ level_cost</span>
+                        <span>÷ 100</span>
                         <span class="mono" id="outLevel">0</span>
                     </div>
                 </div>
@@ -105,7 +100,7 @@
 
 </div>
 
-<script src="level.js?v=2"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
