@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор уровня острова</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="level.css">
+</head>
+<body>
+
+<div class="wrap">
+
+    <div class="top">
+        <div>
+            <div class="top-label">ONE BLOCK · UTILS</div>
+            <div class="top-title">Калькулятор уровня острова</div>
+        </div>
+        <div class="pill pill-green">
+            <span class="dot"></span> Online
+        </div>
+    </div>
+
+    <div class="calc-grid">
+
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">Параметры расчёта</div>
+            </div>
+
+            <div class="card-body">
+
+                <div class="field">
+                    <label class="field-label">Тип блока</label>
+                    <select id="blockPreset" class="input">
+                        <option value="1">Камень / Булыжник / Земля</option>
+                        <option value="2">Дерево (бревно)</option>
+                        <option value="5">Угольный блок</option>
+                        <option value="10">Железный блок</option>
+                        <option value="20">Золотой блок</option>
+                        <option value="40">Лазуритовый блок</option>
+                        <option value="100">Алмазный блок</option>
+                        <option value="150">Изумрудный блок</option>
+                        <option value="500">Незеритовый блок</option>
+                        <option value="800">Маяк</option>
+                        <option value="custom">Своё значение…</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label class="field-label">Ценность одного блока</label>
+                    <input id="blockValue" class="input" type="number" min="0" step="any" value="1">
+                </div>
+
+                <div class="field">
+                    <label class="field-label">Количество стаков</label>
+                    <input id="stacks" class="input" type="number" min="0" step="any" value="1" placeholder="0">
+                </div>
+
+                <div class="field">
+                    <label class="field-label">Остаток (блоков сверху)</label>
+                    <input id="extra" class="input" type="number" min="0" step="1" value="0">
+                </div>
+
+                <div class="field-hint">
+                    Итог: <span class="mono">(стаки × 64 + остаток) × ценность ÷ 100</span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">Результат</div>
+            </div>
+
+            <div class="card-body result-body">
+
+                <div class="result-main">
+                    <div class="result-label">Уровень острова</div>
+                    <div class="result-value" id="resultLevel">0.00</div>
+                    <div class="result-sub" id="resultSub">0 блоков</div>
+                </div>
+
+                <div class="result-rows">
+                    <div class="result-row">
+                        <span>Всего блоков</span>
+                        <span class="mono" id="outBlocks">0</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Очки (ценность)</span>
+                        <span class="mono" id="outScore">0</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Формула</span>
+                        <span class="mono" id="outFormula">—</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+        <div class="card-head">
+            <div class="card-title">Формула расчёта</div>
+        </div>
+        <div class="card-body">
+            <div class="formula">
+                <div class="formula-step">
+                    <span class="formula-num">1</span>
+                    <span class="formula-text">стаки × 64 = всего блоков</span>
+                </div>
+                <div class="formula-step">
+                    <span class="formula-num">2</span>
+                    <span class="formula-text">всего блоков × ценность = очки</span>
+                </div>
+                <div class="formula-step">
+                    <span class="formula-num">3</span>
+                    <span class="formula-text">очки ÷ 100 = уровень острова</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    const presetEl   = document.getElementById('blockPreset');
+    const valueEl    = document.getElementById('blockValue');
+    const stacksEl   = document.getElementById('stacks');
+    const extraEl    = document.getElementById('extra');
+    const levelEl    = document.getElementById('resultLevel');
+    const subEl      = document.getElementById('resultSub');
+    const outBlocks  = document.getElementById('outBlocks');
+    const outScore   = document.getElementById('outScore');
+    const outFormula = document.getElementById('outFormula');
+
+    presetEl.addEventListener('change', () => {
+        if (presetEl.value !== 'custom') {
+            valueEl.value = presetEl.value;
+        }
+        calc();
+    });
+
+    valueEl.addEventListener('input', () => {
+        const match = [...presetEl.options].find(o => o.value === valueEl.value);
+        presetEl.value = match ? match.value : 'custom';
+        calc();
+    });
+
+    [stacksEl, extraEl].forEach(el => el.addEventListener('input', calc));
+
+    function fmt(n, digits = 2) {
+        return n.toLocaleString('ru-RU', { maximumFractionDigits: digits });
+    }
+
+    function calc() {
+        const value  = parseFloat(valueEl.value)  || 0;
+        const stacks = parseFloat(stacksEl.value) || 0;
+        const extra  = parseFloat(extraEl.value)  || 0;
+
+        const blocks = stacks * 64 + extra;
+        const score  = blocks * value;
+        const level  = score / 100;
+
+        levelEl.textContent = fmt(level);
+        subEl.textContent   = fmt(blocks, 0) + ' блоков';
+        outBlocks.textContent = fmt(blocks, 0);
+        outScore.textContent  = fmt(score, 0);
+        outFormula.textContent =
+            `${fmt(stacks, 0)}×64 + ${fmt(extra, 0)} × ${fmt(value)} ÷ 100`;
+    }
+
+    calc();
+})();
+</script>
+
+</body>
+</html>
