@@ -7,7 +7,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="level.css?v=5">
+<script>
+(function () {
+    var v = Date.now();
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'level.css?v=' + v;
+    document.head.appendChild(link);
+})();
+</script>
 </head>
 <body>
 
@@ -100,7 +108,14 @@
 
 </div>
 
-<script src="script.js?v=5"></script>
+<script>
+(function () {
+    var v = Date.now();
+    var s = document.createElement('script');
+    s.src = 'level.js?v=' + v;
+    document.body.appendChild(s);
+})();
+</script>
 
 </body>
 </html>
