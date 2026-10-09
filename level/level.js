@@ -4,6 +4,7 @@
     const presetEl  = document.getElementById('blockPreset');
     const valueEl   = document.getElementById('blockValue');
     const stacksEl  = document.getElementById('stacks');
+    const costEl    = document.getElementById('levelCost');
 
     const levelEl   = document.getElementById('resultLevel');
     const outBlocks = document.getElementById('outBlocks');
@@ -11,7 +12,6 @@
     const outLevel  = document.getElementById('outLevel');
 
     const STACK_SIZE = 64;
-    const DIVIDER    = 100;
 
     function fmt(n) {
         if (!isFinite(n)) return '0';
@@ -33,18 +33,20 @@
     });
 
     stacksEl.addEventListener('input', calc);
+    costEl.addEventListener('input', calc);
 
     function calc() {
-        const value  = parseFloat(valueEl.value)  || 0;
-        const stacks = parseFloat(stacksEl.value) || 0;
+        const value    = parseFloat(valueEl.value) || 0;
+        const stacks   = parseFloat(stacksEl.value) || 0;
+        const levelCost = parseFloat(costEl.value) || 100;
 
-        const blocks = stacks * STACK_SIZE;
-        const score = blocks * value;
-        const level = score / DIVIDER;
+        const totalItems = stacks * STACK_SIZE;
+        const blocks     = totalItems * value;
+        const level = levelCost > 0 ? blocks / levelCost : 0;
 
-        levelEl.textContent   = fmt(level);
-        outBlocks.textContent = fmt(blocks);
-        outScore.textContent  = fmt(score);
+        levelEl.textContent   = fmt(Math.floor(level));
+        outBlocks.textContent = fmt(totalItems);
+        outScore.textContent  = fmt(blocks);
         outLevel.textContent  = fmt(level);
     }
 
