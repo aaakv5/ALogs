@@ -33,7 +33,7 @@
             <div class="card-body">
 
                 <div class="field">
-                    <label class="field-label">Тип блока</label>
+                    <label class="field-label" for="blockPreset">Тип блока</label>
                     <select id="blockPreset" class="input">
                         <option value="1">Камень / Булыжник / Земля</option>
                         <option value="2">Дерево (бревно)</option>
@@ -50,22 +50,17 @@
                 </div>
 
                 <div class="field">
-                    <label class="field-label">Ценность одного блока</label>
+                    <label class="field-label" for="blockValue">Ценность блока</label>
                     <input id="blockValue" class="input" type="number" min="0" step="any" value="1">
                 </div>
 
                 <div class="field">
-                    <label class="field-label">Количество стаков</label>
-                    <input id="stacks" class="input" type="number" min="0" step="any" value="1" placeholder="0">
-                </div>
-
-                <div class="field">
-                    <label class="field-label">Остаток (блоков сверху)</label>
-                    <input id="extra" class="input" type="number" min="0" step="1" value="0">
+                    <label class="field-label" for="stacks">Количество стаков</label>
+                    <input id="stacks" class="input" type="number" min="0" step="any" value="1">
                 </div>
 
                 <div class="field-hint">
-                    Итог: <span class="mono">(стаки × 64 + остаток) × ценность ÷ 100</span>
+                    Формула: <span class="mono">стаки × 64 × ценность ÷ 100</span>
                 </div>
 
             </div>
@@ -80,22 +75,21 @@
 
                 <div class="result-main">
                     <div class="result-label">Уровень острова</div>
-                    <div class="result-value" id="resultLevel">0.00</div>
-                    <div class="result-sub" id="resultSub">0 блоков</div>
+                    <div class="result-value" id="resultLevel">0</div>
                 </div>
 
                 <div class="result-rows">
                     <div class="result-row">
-                        <span>Всего блоков</span>
+                        <span>Стаки × 64</span>
                         <span class="mono" id="outBlocks">0</span>
                     </div>
                     <div class="result-row">
-                        <span>Очки (ценность)</span>
+                        <span>× Ценность блока</span>
                         <span class="mono" id="outScore">0</span>
                     </div>
                     <div class="result-row">
-                        <span>Формула</span>
-                        <span class="mono" id="outFormula">—</span>
+                        <span>÷ 100 = уровень</span>
+                        <span class="mono" id="outLevel">0</span>
                     </div>
                 </div>
 
@@ -112,11 +106,11 @@
             <div class="formula">
                 <div class="formula-step">
                     <span class="formula-num">1</span>
-                    <span class="formula-text">стаки × 64 = всего блоков</span>
+                    <span class="formula-text">количество стаков × 64 = всего блоков</span>
                 </div>
                 <div class="formula-step">
                     <span class="formula-num">2</span>
-                    <span class="formula-text">всего блоков × ценность = очки</span>
+                    <span class="formula-text">всего блоков × ценность блока = очки</span>
                 </div>
                 <div class="formula-step">
                     <span class="formula-num">3</span>
@@ -128,57 +122,7 @@
 
 </div>
 
-<script>
-(function () {
-    const presetEl   = document.getElementById('blockPreset');
-    const valueEl    = document.getElementById('blockValue');
-    const stacksEl   = document.getElementById('stacks');
-    const extraEl    = document.getElementById('extra');
-    const levelEl    = document.getElementById('resultLevel');
-    const subEl      = document.getElementById('resultSub');
-    const outBlocks  = document.getElementById('outBlocks');
-    const outScore   = document.getElementById('outScore');
-    const outFormula = document.getElementById('outFormula');
-
-    presetEl.addEventListener('change', () => {
-        if (presetEl.value !== 'custom') {
-            valueEl.value = presetEl.value;
-        }
-        calc();
-    });
-
-    valueEl.addEventListener('input', () => {
-        const match = [...presetEl.options].find(o => o.value === valueEl.value);
-        presetEl.value = match ? match.value : 'custom';
-        calc();
-    });
-
-    [stacksEl, extraEl].forEach(el => el.addEventListener('input', calc));
-
-    function fmt(n, digits = 2) {
-        return n.toLocaleString('ru-RU', { maximumFractionDigits: digits });
-    }
-
-    function calc() {
-        const value  = parseFloat(valueEl.value)  || 0;
-        const stacks = parseFloat(stacksEl.value) || 0;
-        const extra  = parseFloat(extraEl.value)  || 0;
-
-        const blocks = stacks * 64 + extra;
-        const score  = blocks * value;
-        const level  = score / 100;
-
-        levelEl.textContent = fmt(level);
-        subEl.textContent   = fmt(blocks, 0) + ' блоков';
-        outBlocks.textContent = fmt(blocks, 0);
-        outScore.textContent  = fmt(score, 0);
-        outFormula.textContent =
-            `${fmt(stacks, 0)}×64 + ${fmt(extra, 0)} × ${fmt(value)} ÷ 100`;
-    }
-
-    calc();
-})();
-</script>
+<script src="level.js"></script>
 
 </body>
 </html>
