@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="level.css">
+<link rel="stylesheet" href="level.css?v=1">
 </head>
 <body>
 
@@ -15,7 +15,7 @@
 
     <div class="top">
         <div>
-            <div class="top-label">ONE BLOCK · UTILS</div>
+            <div class="top-label">OneBlock</div>
             <div class="top-title">Калькулятор уровня острова</div>
         </div>
         <div class="pill pill-green">
@@ -59,8 +59,13 @@
                     <input id="stacks" class="input" type="number" min="0" step="any" value="1">
                 </div>
 
+                <div class="field">
+                    <label class="field-label" for="levelCost">Стоимость уровня (level_cost)</label>
+                    <input id="levelCost" class="input" type="number" min="1" step="any" value="100">
+                </div>
+
                 <div class="field-hint">
-                    Формула: <span class="mono">стаки × 64 × ценность ÷ 100</span>
+                    Формула: <span class="mono">blocks / level_cost</span>
                 </div>
 
             </div>
@@ -84,11 +89,11 @@
                         <span class="mono" id="outBlocks">0</span>
                     </div>
                     <div class="result-row">
-                        <span>× Ценность блока</span>
+                        <span>× ценность блока = blocks</span>
                         <span class="mono" id="outScore">0</span>
                     </div>
                     <div class="result-row">
-                        <span>÷ 100 = уровень</span>
+                        <span>÷ level_cost</span>
                         <span class="mono" id="outLevel">0</span>
                     </div>
                 </div>
@@ -98,31 +103,9 @@
 
     </div>
 
-    <div class="card" style="margin-top:18px;">
-        <div class="card-head">
-            <div class="card-title">Формула расчёта</div>
-        </div>
-        <div class="card-body">
-            <div class="formula">
-                <div class="formula-step">
-                    <span class="formula-num">1</span>
-                    <span class="formula-text">количество стаков × 64 = всего блоков</span>
-                </div>
-                <div class="formula-step">
-                    <span class="formula-num">2</span>
-                    <span class="formula-text">всего блоков × ценность блока = очки</span>
-                </div>
-                <div class="formula-step">
-                    <span class="formula-num">3</span>
-                    <span class="formula-text">очки ÷ 100 = уровень острова</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
-<script src="level.js"></script>
+<script src="level.js?v=1"></script>
 
 </body>
 </html>
