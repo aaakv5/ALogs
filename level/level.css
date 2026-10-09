@@ -278,50 +278,6 @@ select.input option { background: var(--bg-card); color: var(--text); }
     word-break: break-all;
 }
 
-.formula {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.formula-step {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    transition: border-color 0.15s, background 0.15s;
-}
-
-.formula-step:hover {
-    border-color: var(--accent-border);
-    background: var(--bg-hover);
-}
-
-.formula-num {
-    flex-shrink: 0;
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--accent-soft);
-    border: 1px solid var(--accent-border);
-    color: var(--accent);
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: 12px;
-}
-
-.formula-text {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--text);
-}
-
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -342,5 +298,4 @@ select.input option { background: var(--bg-card); color: var(--text); }
 @media (max-width: 520px) {
     .result-value { font-size: 34px; letter-spacing: -1px; }
     .result-row { font-size: 11.5px; padding: 10px 12px; }
-    .formula-text { font-size: 12px; }
 }
